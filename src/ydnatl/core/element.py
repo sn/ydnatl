@@ -2,7 +2,7 @@ import uuid
 import copy
 import os
 import functools
-
+from ydnatl.core.cycode.cython_render import render_c
 from typing import Callable, Any, Iterator, Union, List
 
 
@@ -248,6 +248,9 @@ class HTMLElement:
         self.on_after_render()
         return result
     
+    def render_c(self) -> str:
+        return render_c(self)
+
     def to_dict(self) -> dict:
         return {
             "tag": self._tag,

@@ -1,4 +1,5 @@
 from .core.element import HTMLElement
+from .core.cycode.cython_render import render_c
 from .tags.form import (
     Textarea,
     Select,
