@@ -2,8 +2,6 @@ from ydnatl.core.element import HTMLElement
 from ydnatl.tags.tag_factory import simple_tag_class
 
 
-UnorderedList = simple_tag_class("ul")
-OrderedList = simple_tag_class("ol")
 ListItem = simple_tag_class("li")
 Datalist = simple_tag_class("datalist")
 DescriptionDetails = simple_tag_class("dd")
