@@ -189,7 +189,6 @@ class TestHTMLElement(unittest.TestCase):
         element.add_attributes([("id", "my-div"), ("class", "container")])
         self.assertEqual(element.attributes, {"id": "my-div", "class": "container"})
 
-        # Test overwriting existing attributes
         element.add_attributes([("id", "new-id"), ("style", "color: red")])
         self.assertEqual(
             element.attributes,
@@ -243,6 +242,192 @@ class TestHTMLElement(unittest.TestCase):
         element = HTMLElement(normal_text, tag="p")
         rendered = str(element)
         self.assertEqual(rendered, f"<p>{normal_text}</p>")
+
+    def test_to_json_simple_element(self):
+        """Test serialization of a simple element to JSON."""
+        import json
+        element = HTMLElement("Hello", tag="div", id="test", class_name="container")
+        json_str = element.to_json()
+        self.assertIsInstance(json_str, str)
+        data = json.loads(json_str)
+        self.assertEqual(data["tag"], "div")
+        self.assertEqual(data["text"], "Hello")
+        self.assertEqual(data["attributes"]["id"], "test")
+
+    def test_to_json_with_indent(self):
+        """Test JSON serialization with indentation."""
+        element = HTMLElement("Test", tag="p")
+        json_str = element.to_json(indent=2)
+        self.assertIn("\n", json_str)  # Should have newlines with indentation
+        self.assertIn("  ", json_str)  # Should have spaces for indentation
+
+    def test_to_json_nested_elements(self):
+        """Test serialization of nested elements to JSON."""
+        parent = HTMLElement(tag="div", id="parent")
+        child1 = HTMLElement("Child 1", tag="span")
+        child2 = HTMLElement("Child 2", tag="span")
+        parent.append(child1, child2)
+
+        json_str = parent.to_json()
+        import json
+        data = json.loads(json_str)
+
+        self.assertEqual(len(data["children"]), 2)
+        self.assertEqual(data["children"][0]["text"], "Child 1")
+        self.assertEqual(data["children"][1]["text"], "Child 2")
+
+    def test_from_dict_simple_element(self):
+        """Test reconstruction of a simple element from dictionary."""
+        data = {
+            "tag": "div",
+            "self_closing": False,
+            "attributes": {"id": "test", "class": "container"},
+            "text": "Hello",
+            "children": []
+        }
+        element = HTMLElement.from_dict(data)
+
+        self.assertEqual(element.tag, "div")
+        self.assertEqual(element.text, "Hello")
+        self.assertEqual(element.get_attribute("id"), "test")
+        self.assertEqual(element.get_attribute("class"), "container")
+        self.assertFalse(element.self_closing)
+
+    def test_from_dict_self_closing_element(self):
+        """Test reconstruction of a self-closing element."""
+        data = {
+            "tag": "br",
+            "self_closing": True,
+            "attributes": {},
+            "text": "",
+            "children": []
+        }
+        element = HTMLElement.from_dict(data)
+
+        self.assertEqual(element.tag, "br")
+        self.assertTrue(element.self_closing)
+        self.assertEqual(str(element), "<br />")
+
+    def test_from_dict_nested_elements(self):
+        """Test reconstruction of nested elements from dictionary."""
+        data = {
+            "tag": "div",
+            "self_closing": False,
+            "attributes": {"id": "parent"},
+            "text": "",
+            "children": [
+                {
+                    "tag": "span",
+                    "self_closing": False,
+                    "attributes": {},
+                    "text": "Child 1",
+                    "children": []
+                },
+                {
+                    "tag": "span",
+                    "self_closing": False,
+                    "attributes": {},
+                    "text": "Child 2",
+                    "children": []
+                }
+            ]
+        }
+        element = HTMLElement.from_dict(data)
+
+        self.assertEqual(element.tag, "div")
+        self.assertEqual(len(element.children), 2)
+        self.assertEqual(element.children[0].text, "Child 1")
+        self.assertEqual(element.children[1].text, "Child 2")
+
+    def test_from_dict_invalid_input(self):
+        """Test from_dict with invalid input."""
+        with self.assertRaises(ValueError) as context:
+            HTMLElement.from_dict("not a dict")
+        self.assertIn("must be a dictionary", str(context.exception))
+
+    def test_from_dict_missing_tag(self):
+        """Test from_dict with missing tag key."""
+        data = {"attributes": {}, "text": "Test"}
+        with self.assertRaises(ValueError) as context:
+            HTMLElement.from_dict(data)
+        self.assertIn("must contain 'tag' key", str(context.exception))
+
+    def test_from_json_simple_element(self):
+        """Test reconstruction from JSON string."""
+        json_str = '{"tag": "p", "self_closing": false, "attributes": {"id": "test"}, "text": "Hello", "children": []}'
+        element = HTMLElement.from_json(json_str)
+
+        self.assertEqual(element.tag, "p")
+        self.assertEqual(element.text, "Hello")
+        self.assertEqual(element.get_attribute("id"), "test")
+
+    def test_from_json_invalid_json(self):
+        """Test from_json with invalid JSON string."""
+        invalid_json = "{invalid json}"
+        with self.assertRaises(ValueError) as context:
+            HTMLElement.from_json(invalid_json)
+        self.assertIn("Invalid JSON string", str(context.exception))
+
+    def test_round_trip_serialization(self):
+        """Test that serialization and deserialization preserve element structure."""
+        original = HTMLElement(tag="div", id="container", class_name="wrapper")
+        section = HTMLElement(tag="section")
+        section.append(
+            HTMLElement("Paragraph 1", tag="p"),
+            HTMLElement("Paragraph 2", tag="p", class_name="highlight")
+        )
+        original.append(
+            HTMLElement("Header", tag="h1"),
+            section
+        )
+
+        json_str = original.to_json()
+
+        restored = HTMLElement.from_json(json_str)
+
+        self.assertEqual(original.tag, restored.tag)
+        self.assertEqual(original.get_attribute("id"), restored.get_attribute("id"))
+        self.assertEqual(len(original.children), len(restored.children))
+        self.assertEqual(original.children[0].text, restored.children[0].text)
+
+        self.assertEqual(str(original), str(restored))
+
+    def test_round_trip_with_attributes(self):
+        """Test round-trip serialization with various attributes."""
+        original = HTMLElement(
+            tag="input",
+            self_closing=True,
+            type="text",
+            name="username",
+            placeholder="Enter username",
+            data_validation="required"
+        )
+
+        json_str = original.to_json()
+        restored = HTMLElement.from_json(json_str)
+
+        self.assertEqual(original.get_attribute("type"), restored.get_attribute("type"))
+        self.assertEqual(original.get_attribute("name"), restored.get_attribute("name"))
+        self.assertEqual(original.get_attribute("placeholder"), restored.get_attribute("placeholder"))
+        self.assertEqual(original.get_attribute("data-validation"), restored.get_attribute("data-validation"))
+        self.assertEqual(str(original), str(restored))
+
+    def test_serialization_deeply_nested(self):
+        """Test serialization of deeply nested structures."""
+        root = HTMLElement(tag="div", id="root")
+        level1 = HTMLElement(tag="div", id="level1")
+        level2 = HTMLElement(tag="div", id="level2")
+        level3 = HTMLElement("Deep content", tag="span")
+
+        level2.append(level3)
+        level1.append(level2)
+        root.append(level1)
+
+        json_str = root.to_json()
+        restored = HTMLElement.from_json(json_str)
+
+        self.assertEqual(restored.children[0].children[0].children[0].text, "Deep content")
+        self.assertEqual(str(root), str(restored))
 
 
 if __name__ == "__main__":

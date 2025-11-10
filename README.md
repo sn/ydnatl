@@ -5,6 +5,7 @@ YDNATL (**Y**ou **D**on't **N**eed **A**nother **T**emplate **L**anguage) is a P
 - ✓ Declarative syntax for building HTML documents (like Flutter)
 - ✓ Easy to read and write
 - ✓ Supports all HTML5 elements
+- ✓ JSON serialization/deserialization for saving and loading UI structures
 - ✓ Lightweight
 - ✓ Extremely fast
 - ✓ Fully customisable
@@ -38,7 +39,6 @@ page = HTML(
     )
 )
 
-# Render the HTML document
 print(page.render())
 ```
 
@@ -106,16 +106,70 @@ div.add_attributes([("aria-label", "Main content"), ("tabindex", "0")])
 # HTML output: <div id="my-div" class="container" data-value="123" role="main" aria-label="Main content" tabindex="0"></div>
 ```
 
+### JSON Serialization
+
+YDNATL supports JSON serialization and deserialization, making it perfect for drag-and-drop website builders, saving UI states, or transmitting page structures over APIs.
+
+```python
+from ydnatl import *
+
+# Build a page structure
+page = Div(id="page", class_name="container")
+page.append(
+    H1("Welcome"),
+    Section(
+        Paragraph("This is a paragraph"),
+        Paragraph("Another paragraph", class_name="highlight")
+    )
+)
+
+# Serialize to JSON (for saving/storing)
+json_data = page.to_json(indent=2)
+print(json_data)
+
+# Later... deserialize from JSON (for loading)
+from ydnatl.core.element import HTMLElement
+restored_page = HTMLElement.from_json(json_data)
+
+# Generate HTML (output will be identical)
+print(str(restored_page))
+```
+
+The JSON format is simple and clean:
+
+```json
+{
+  "tag": "div",
+  "self_closing": false,
+  "attributes": {
+    "id": "page",
+    "class": "container"
+  },
+  "text": "",
+  "children": [...]
+}
+```
+
+**Use cases:**
+- Save/load website layouts to/from a database
+- Implement undo/redo functionality
+- Store pre-built templates as JSON
+- Version control for page structures
+- API communication between frontend and backend
+- Drag-and-drop website builders
+
 ## Great For
 
 - CLI tools
-- Site builders
+- Drag-and-drop website builders
+- Site builders with save/load functionality
 - Web frameworks
 - Alternative to heavy template engines
 - Static site generators
 - Documentation generators
 - LLM's and AI tooling that generate interfaces dynamically
 - Creating frontends for headless platforms (CMS/CRM etc)
+- Applications requiring UI state serialization
 
 ## Examples
 
@@ -198,12 +252,6 @@ YDNATL has full test coverage. To run the tests locally, use:
 pytest
 ```
 
-or:
-
-```shell
-python run_test.py
-```
-
 ## Element Methods:
 
 - `instance.prepend()`
@@ -226,6 +274,9 @@ python run_test.py
 - `instance.count_children()`
 - `instance.render()`
 - `instance.to_dict()`
+- `instance.to_json(indent=None)` - Serialize element to JSON string
+- `HTMLElement.from_dict(data)` - Reconstruct element from dictionary
+- `HTMLElement.from_json(json_str)` - Reconstruct element from JSON string
 
 ## Events
 
@@ -244,15 +295,15 @@ python run_test.py
 
 ## Modules
 
-| **Module**         | **Purpose**                       | **Key Elements** |
-| ------------------ | --------------------------------- | ------------ |
-| ydnatl.tags.form   | Common HTML form elements         | Form, Input, Button, Select, Textarea |
-| ydnatl.tags.html   | Structural HTML document elements | HTML, Head, Body, Title, Meta, Script |
-| ydnatl.tags.layout | Layout related HTML tags          | Div, Section, Header, Nav, Footer, Main |
-| ydnatl.tags.lists  | HTML list elements                | UnorderedList, OrderedList, ListItem |
-| ydnatl.tags.media  | Media related HTML elements       | Image, Video, Audio, Figure, Canvas |
+| **Module**         | **Purpose**                       | **Key Elements**                                |
+|--------------------|-----------------------------------|-------------------------------------------------|
+| ydnatl.tags.form   | Common HTML form elements         | Form, Input, Button, Select, Textarea           |
+| ydnatl.tags.html   | Structural HTML document elements | HTML, Head, Body, Title, Meta, Script           |
+| ydnatl.tags.layout | Layout related HTML tags          | Div, Section, Header, Nav, Footer, Main         |
+| ydnatl.tags.lists  | HTML list elements                | UnorderedList, OrderedList, ListItem            |
+| ydnatl.tags.media  | Media related HTML elements       | Image, Video, Audio, Figure, Canvas             |
 | ydnatl.tags.table  | HTML table elements               | Table, TableRow, TableHeaderCell, TableDataCell |
-| ydnatl.tags.text   | HTML text elements                | H1-H6, Paragraph, Span, Strong, Em |
+| ydnatl.tags.text   | HTML text elements                | H1-H6, Paragraph, Span, Strong, Em              |
 
 ## Importing
 
@@ -279,7 +330,11 @@ from ydnatl.tags.text import H1, Paragraph
 - `Option()`
 - `Button()`
 - `Fieldset()`
+- `Legend()`
 - `Optgroup()`
+- `Output()`
+- `Progress()`
+- `Meter()`
 
 #### ydnatl.tags.html
 
@@ -288,20 +343,27 @@ from ydnatl.tags.text import H1, Paragraph
 - `Body()`
 - `Title()`
 - `Meta()`
+- `Base()`
 - `HtmlLink()` (use instead of `Link()` to avoid conflicts)
 - `Script()`
 - `Style()`
+- `Noscript()`
 - `IFrame()`
 
 #### ydnatl.tags.layout
 
 - `Div()`
 - `Section()`
+- `Article()`
+- `Aside()`
 - `Header()`
 - `Nav()`
 - `Footer()`
 - `HorizontalRule()`
 - `Main()`
+- `Details()`
+- `Summary()`
+- `Dialog()`
 
 #### ydnatl.tags.lists
 
@@ -319,10 +381,16 @@ from ydnatl.tags.text import H1, Paragraph
 - `Video()`
 - `Audio()`
 - `Source()`
+- `Track()`
 - `Picture()`
 - `Figure()`
 - `Figcaption()`
 - `Canvas()`
+- `Embed()`
+- `Object()`
+- `Param()`
+- `Map()`
+- `Area()`
 
 #### ydnatl.tags.table
 
@@ -333,6 +401,9 @@ from ydnatl.tags.text import H1, Paragraph
 - `TableBody()`
 - `TableDataCell()`
 - `TableRow()`
+- `Caption()`
+- `Col()`
+- `Colgroup()`
 
 #### ydnatl.tags.text
 
@@ -351,6 +422,7 @@ from ydnatl.tags.text import H1, Paragraph
 - `Italic()`
 - `Span()`
 - `Strong()`
+- `Bold()`
 - `Abbr()`
 - `Link()`
 - `Small()`
@@ -358,6 +430,17 @@ from ydnatl.tags.text import H1, Paragraph
 - `Subscript()`
 - `Time()`
 - `Code()`
+- `Del()`
+- `Ins()`
+- `Strikethrough()`
+- `Underline()`
+- `Kbd()`
+- `Samp()`
+- `Var()`
+- `Mark()`
+- `Dfn()`
+- `Br()`
+- `Wbr()`
 
 ## Creating your own elements or components
 
@@ -403,9 +486,9 @@ This will produce:
 </mytag>
 ```
 
-You can use the event callbacks or properties/methods directly to load further child elements, fetch data or any other programmatic task to enrich or contruct your tag on loading, render or even after render.
+You can use the event callbacks or properties/methods directly to load further child elements, fetch data or any other programmatic task to enrich or construct your tag on loading, render or even after render.
 
-You can take this further and contruct an entire page as a component where everything needed for the page is contained within the element class itself. This is a great way to build websites.
+You can take this further and construct an entire page as a component where everything needed for the page is contained within the element class itself. This is a great way to build websites.
 
 ## Contributions
 
@@ -430,8 +513,6 @@ pip install ".[dev]"
 3. Run the tests:
 
 ```bash
-python run_tests.py
-# or
 pytest
 ```
 

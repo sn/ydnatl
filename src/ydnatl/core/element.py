@@ -1,5 +1,6 @@
 import copy
 import html
+import json
 import os
 import uuid
 from typing import Callable, Any, Iterator, Union, List
@@ -238,6 +239,7 @@ class HTMLElement:
     def render(self) -> str:
         """Renders the HTML element and its children to a string."""
         self.on_before_render()
+
         attributes = self._render_attributes()
         tag_start = f"<{self._tag}{attributes}"
 
@@ -262,3 +264,63 @@ class HTMLElement:
             "text": self._text,
             "children": list(map(lambda child: child.to_dict(), self._children)),
         }
+
+    def to_json(self, indent: int = None) -> str:
+        """Serializes the element and its children to a JSON string.
+
+        Args:
+            indent: Number of spaces for JSON indentation (None for compact output)
+
+        Returns:
+            JSON string representation of the element
+        """
+        return json.dumps(self.to_dict(), indent=indent)
+
+    @classmethod
+    def from_dict(cls, data: dict) -> "HTMLElement":
+        """Reconstructs an HTMLElement from a dictionary.
+
+        Args:
+            data: Dictionary containing element data (from to_dict())
+
+        Returns:
+            Reconstructed HTMLElement instance
+        """
+        if not isinstance(data, dict):
+            raise ValueError("Input must be a dictionary")
+
+        if "tag" not in data:
+            raise ValueError("Dictionary must contain 'tag' key")
+
+        element = cls(
+            tag=data["tag"],
+            self_closing=data.get("self_closing", False),
+            **data.get("attributes", {})
+        )
+
+        if "text" in data and data["text"]:
+            element._text = data["text"]
+
+        if "children" in data and data["children"]:
+            for child_data in data["children"]:
+                child = cls.from_dict(child_data)
+                element._children.append(child)
+
+        return element
+
+    @classmethod
+    def from_json(cls, json_str: str) -> "HTMLElement":
+        """Reconstructs an HTMLElement from a JSON string.
+
+        Args:
+            json_str: JSON string representation (from to_json())
+
+        Returns:
+            Reconstructed HTMLElement instance
+        """
+        try:
+            data = json.loads(json_str)
+        except json.JSONDecodeError as e:
+            raise ValueError(f"Invalid JSON string: {e}")
+
+        return cls.from_dict(data)
