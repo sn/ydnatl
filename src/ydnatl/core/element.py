@@ -3,7 +3,9 @@ import html
 import json
 import os
 import uuid
-from typing import Callable, Any, Iterator, Union, List
+from typing import Callable, Any, Iterator, Union, List, TypeVar
+
+T = TypeVar('T', bound='HTMLElement')
 
 
 class HTMLElement:
@@ -46,6 +48,14 @@ class HTMLElement:
     def __del__(self) -> None:
         self.on_unload()
 
+    def __enter__(self) -> "HTMLElement":
+        """Context manager entry - returns self for use in with statements."""
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb) -> None:
+        """Context manager exit - no cleanup needed."""
+        pass
+
     @staticmethod
     def _flatten(items: Union[List[Any], tuple]) -> Iterator[Any]:
         """Recursively flattens nested iterables of children."""
@@ -62,8 +72,12 @@ class HTMLElement:
         elif isinstance(child, str):
             self._text += child
 
-    def prepend(self, *children: Union["HTMLElement", str, List[Any]]) -> None:
-        """Prepends children to the current tag."""
+    def prepend(self, *children: Union["HTMLElement", str, List[Any]]) -> "HTMLElement":
+        """Prepends children to the current tag.
+
+        Returns:
+            self for method chaining
+        """
         new_children: List[HTMLElement] = []
         for child in self._flatten(children):
             if isinstance(child, HTMLElement):
@@ -73,11 +87,17 @@ class HTMLElement:
             else:
                 raise ValueError(f"Invalid child type: {child}")
         self._children = new_children + self._children
+        return self
 
-    def append(self, *children: Union["HTMLElement", str, List[Any]]) -> None:
-        """Appends children to the current tag."""
+    def append(self, *children: Union["HTMLElement", str, List[Any]]) -> "HTMLElement":
+        """Appends children to the current tag.
+
+        Returns:
+            self for method chaining
+        """
         for child in self._flatten(children):
             self._add_child(child)
+        return self
 
     def filter(
             self, condition: Callable[[Any], bool], recursive: bool = False
@@ -89,16 +109,26 @@ class HTMLElement:
             if recursive:
                 yield from child.filter(condition, recursive=True)
 
-    def remove_all(self, condition: Callable[[Any], bool]) -> None:
-        """Removes all children that meet the condition."""
+    def remove_all(self, condition: Callable[[Any], bool]) -> "HTMLElement":
+        """Removes all children that meet the condition.
+
+        Returns:
+            self for method chaining
+        """
         to_remove = list(self.filter(condition))
         for child in to_remove:
             if child in self._children:
                 self._children.remove(child)
+        return self
 
-    def clear(self) -> None:
-        """Clears all children from the tag."""
+    def clear(self) -> "HTMLElement":
+        """Clears all children from the tag.
+
+        Returns:
+            self for method chaining
+        """
         self._children.clear()
+        return self
 
     def pop(self, index: int = 0) -> "HTMLElement":
         """Pops a child from the tag."""
@@ -112,18 +142,33 @@ class HTMLElement:
         """Returns the last child of the tag."""
         return self._children[-1] if self._children else None
 
-    def add_attribute(self, key: str, value: str) -> None:
-        """Adds an attribute to the current tag."""
-        self._attributes[key] = value
+    def add_attribute(self, key: str, value: str) -> "HTMLElement":
+        """Adds an attribute to the current tag.
 
-    def add_attributes(self, attributes: list[tuple[str, str]]) -> None:
-        """Adds multiple attributes to the current tag."""
+        Returns:
+            self for method chaining
+        """
+        self._attributes[key] = value
+        return self
+
+    def add_attributes(self, attributes: list[tuple[str, str]]) -> "HTMLElement":
+        """Adds multiple attributes to the current tag.
+
+        Returns:
+            self for method chaining
+        """
         for key, value in attributes:
             self._attributes[key] = value
+        return self
 
-    def remove_attribute(self, key: str) -> None:
-        """Removes an attribute from the current tag."""
+    def remove_attribute(self, key: str) -> "HTMLElement":
+        """Removes an attribute from the current tag.
+
+        Returns:
+            self for method chaining
+        """
         self._attributes.pop(key, None)
+        return self
 
     def get_attribute(self, key: str) -> Union[str, None]:
         """Gets an attribute from the current tag."""
@@ -132,6 +177,102 @@ class HTMLElement:
     def has_attribute(self, key: str) -> bool:
         """Checks if an attribute exists in the current tag."""
         return key in self._attributes
+
+    def add_style(self, key: str, value: str) -> "HTMLElement":
+        """Adds a CSS style to the element's inline styles.
+
+        Args:
+            key: CSS property name (e.g., 'color', 'font-size')
+            value: CSS property value (e.g., 'red', '14px')
+
+        Returns:
+            self for method chaining
+        """
+        current_style = self._attributes.get("style", "")
+        styles_dict = self._parse_styles(current_style)
+        styles_dict[key] = value
+        self._attributes["style"] = self._format_styles(styles_dict)
+        return self
+
+    def add_styles(self, styles: dict) -> "HTMLElement":
+        """Adds multiple CSS styles to the element's inline styles.
+
+        Args:
+            styles: Dictionary of CSS properties and values
+                   e.g., {"color": "red", "font-size": "14px"}
+
+        Returns:
+            self for method chaining
+        """
+        current_style = self._attributes.get("style", "")
+        styles_dict = self._parse_styles(current_style)
+        styles_dict.update(styles)
+        self._attributes["style"] = self._format_styles(styles_dict)
+        return self
+
+    def get_style(self, key: str) -> Union[str, None]:
+        """Gets a specific CSS style value from the element's inline styles.
+
+        Args:
+            key: CSS property name
+
+        Returns:
+            The CSS property value or None if not found
+        """
+        current_style = self._attributes.get("style", "")
+        styles_dict = self._parse_styles(current_style)
+        return styles_dict.get(key)
+
+    def remove_style(self, key: str) -> "HTMLElement":
+        """Removes a CSS style from the element's inline styles.
+
+        Args:
+            key: CSS property name to remove
+
+        Returns:
+            self for method chaining
+        """
+        current_style = self._attributes.get("style", "")
+        styles_dict = self._parse_styles(current_style)
+        styles_dict.pop(key, None)
+        if styles_dict:
+            self._attributes["style"] = self._format_styles(styles_dict)
+        else:
+            self._attributes.pop("style", None)
+        return self
+
+    @staticmethod
+    def _parse_styles(style_str: str) -> dict:
+        """Parses a CSS style string into a dictionary.
+
+        Args:
+            style_str: CSS style string (e.g., "color: red; font-size: 14px")
+
+        Returns:
+            Dictionary of CSS properties and values
+        """
+        if not style_str:
+            return {}
+
+        styles = {}
+        for style in style_str.split(";"):
+            style = style.strip()
+            if ":" in style:
+                key, value = style.split(":", 1)
+                styles[key.strip()] = value.strip()
+        return styles
+
+    @staticmethod
+    def _format_styles(styles_dict: dict) -> str:
+        """Formats a dictionary of styles into a CSS style string.
+
+        Args:
+            styles_dict: Dictionary of CSS properties and values
+
+        Returns:
+            CSS style string (e.g., "color: red; font-size: 14px")
+        """
+        return "; ".join(f"{k}: {v}" for k, v in styles_dict.items())
 
     def generate_id(self) -> None:
         """Generates an id for the current tag if not already present."""
@@ -236,19 +377,53 @@ class HTMLElement:
         )
         return f" {attr_str}" if attr_str else ""
 
-    def render(self) -> str:
-        """Renders the HTML element and its children to a string."""
+    def render(self, pretty: bool = False, _indent: int = 0) -> str:
+        """Renders the HTML element and its children to a string.
+
+        Args:
+            pretty: If True, renders with indentation and newlines for readability
+            _indent: Internal parameter for tracking indentation level
+
+        Returns:
+            String representation of the HTML element
+        """
         self.on_before_render()
 
         attributes = self._render_attributes()
-        tag_start = f"<{self._tag}{attributes}"
+        indent_str = "  " * _indent if pretty else ""
+        tag_start = f"{indent_str}<{self._tag}{attributes}"
 
         if self._self_closing:
             result = f"{tag_start} />"
+            if pretty:
+                result += "\n"
         else:
-            children_html = "".join(child.render() for child in self._children)
-            escaped_text = html.escape(self._text)
-            result = f"{tag_start}>{escaped_text}{children_html}</{self._tag}>"
+            # Render children with increased indentation
+            if pretty and self._children:
+                children_html = "".join(
+                    child.render(pretty=True, _indent=_indent + 1)
+                    for child in self._children
+                )
+                escaped_text = html.escape(self._text)
+
+                # Add newlines and indentation for readability
+                if self._children or self._text:
+                    result = f"{tag_start}>"
+                    if escaped_text:
+                        result += escaped_text
+                    if self._children:
+                        result += "\n" + children_html + indent_str
+                    result += f"</{self._tag}>\n"
+                else:
+                    result = f"{tag_start}></{self._tag}>\n"
+            else:
+                # Non-pretty or inline rendering
+                children_html = "".join(
+                    child.render(pretty=pretty, _indent=_indent + 1)
+                    for child in self._children
+                )
+                escaped_text = html.escape(self._text)
+                result = f"{tag_start}>{escaped_text}{children_html}</{self._tag}>"
 
         if hasattr(self, "_prefix") and self._prefix:
             result = f"{self._prefix}{result}"
