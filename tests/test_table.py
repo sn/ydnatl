@@ -1,9 +1,10 @@
-import unittest
-import os
-import tempfile
 import csv
 import json
+import os
+import tempfile
+import unittest
 
+from ydnatl.core.element import HTMLElement
 from ydnatl.tags.table import (
     Table,
     TableFooter,
@@ -13,7 +14,6 @@ from ydnatl.tags.table import (
     TableDataCell,
     TableRow,
 )
-from ydnatl.core.element import HTMLElement
 
 
 class TestTableTags(unittest.TestCase):

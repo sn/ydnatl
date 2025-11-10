@@ -1,5 +1,6 @@
 import unittest
 
+from ydnatl.core.element import HTMLElement
 from ydnatl.tags.media import (
     Image,
     Video,
@@ -10,7 +11,6 @@ from ydnatl.tags.media import (
     Figcaption,
     Canvas,
 )
-from ydnatl.core.element import HTMLElement
 
 
 class TestMediaTags(unittest.TestCase):

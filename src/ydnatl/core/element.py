@@ -1,9 +1,7 @@
-import uuid
 import copy
-import os
-import functools
 import html
-
+import os
+import uuid
 from typing import Callable, Any, Iterator, Union, List
 
 
@@ -11,18 +9,21 @@ class HTMLElement:
     __slots__ = ["_tag", "_children", "_text", "_attributes", "_self_closing"]
 
     def __init__(
-        self,
-        *children: Union["HTMLElement", str, List[Any]],
-        tag: str,
-        self_closing: bool = False,
-        **attributes: str,
+            self,
+            *children: Union["HTMLElement", str, List[Any]],
+            tag: str,
+            self_closing: bool = False,
+            **attributes: str,
     ):
         PRESERVE_UNDERSCORE = {"class_name"}
-        
+
         if not tag:
             raise ValueError("A valid HTML tag name is required")
-        
-        fixed_attributes = {(k if k in PRESERVE_UNDERSCORE else k.replace("_", "-")): v for k, v in attributes.items()}
+
+        fixed_attributes = {
+            (k if k in PRESERVE_UNDERSCORE else k.replace("_", "-")): v
+            for k, v in attributes.items()
+        }
 
         self._tag: str = tag
         self._children: List[HTMLElement] = []
@@ -40,7 +41,7 @@ class HTMLElement:
 
     def __str__(self) -> str:
         return self.render()
-    
+
     def __del__(self) -> None:
         self.on_unload()
 
@@ -78,7 +79,7 @@ class HTMLElement:
             self._add_child(child)
 
     def filter(
-        self, condition: Callable[[Any], bool], recursive: bool = False
+            self, condition: Callable[[Any], bool], recursive: bool = False
     ) -> Iterator["HTMLElement"]:
         """Yields children (and optionally descendants) that meet the condition."""
         for child in self._children:
@@ -113,12 +114,12 @@ class HTMLElement:
     def add_attribute(self, key: str, value: str) -> None:
         """Adds an attribute to the current tag."""
         self._attributes[key] = value
-        
+
     def add_attributes(self, attributes: list[tuple[str, str]]) -> None:
         """Adds multiple attributes to the current tag."""
         for key, value in attributes:
             self._attributes[key] = value
-        
+
     def remove_attribute(self, key: str) -> None:
         """Removes an attribute from the current tag."""
         self._attributes.pop(key, None)
@@ -139,13 +140,16 @@ class HTMLElement:
     def clone(self) -> "HTMLElement":
         """Clones the current tag."""
         return copy.deepcopy(self)
-    
+
     def replace_child(self, old_index: int, new_child: "HTMLElement") -> None:
         """Replaces a existing child element with a new child element."""
         self._children[old_index] = new_child
 
-    def find_by_attribute(self, attr_name: str, attr_value: Any) -> Union["HTMLElement", None]:
+    def find_by_attribute(
+            self, attr_name: str, attr_value: Any
+    ) -> Union["HTMLElement", None]:
         """Finds a child by an attribute."""
+
         def _find(element: "HTMLElement") -> Union["HTMLElement", None]:
             if element.get_attribute(attr_name) == attr_value:
                 return element
@@ -249,12 +253,12 @@ class HTMLElement:
 
         self.on_after_render()
         return result
-    
+
     def to_dict(self) -> dict:
         return {
             "tag": self._tag,
             "self_closing": self._self_closing,
             "attributes": self._attributes.copy(),
             "text": self._text,
-            "children": list(map(lambda child: child.to_dict(), self._children))
+            "children": list(map(lambda child: child.to_dict(), self._children)),
         }

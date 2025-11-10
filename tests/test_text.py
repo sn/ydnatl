@@ -28,7 +28,7 @@ from ydnatl.core.element import HTMLElement
 
 
 class TestTextTags(unittest.TestCase):
-    
+
     def test_h1_with_attributes(self):
         """Test the creation of an H1 element with attributes."""
         h1 = H1("Heading 1", id="heading-1", class_name="heading-1")

@@ -1,5 +1,6 @@
 import unittest
 
+from ydnatl.core.element import HTMLElement
 from ydnatl.tags.form import (
     Textarea,
     Select,
@@ -11,7 +12,6 @@ from ydnatl.tags.form import (
     Label,
     Optgroup,
 )
-from ydnatl.core.element import HTMLElement
 
 
 class TestFormTags(unittest.TestCase):

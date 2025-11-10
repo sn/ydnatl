@@ -1,5 +1,6 @@
 import unittest
 
+from ydnatl.core.element import HTMLElement
 from ydnatl.tags.html import (
     HTML,
     Head,
@@ -11,7 +12,6 @@ from ydnatl.tags.html import (
     Style,
     IFrame,
 )
-from ydnatl.core.element import HTMLElement
 
 
 class TestHTMLTags(unittest.TestCase):
@@ -68,7 +68,7 @@ class TestHTMLTags(unittest.TestCase):
         """Test the creation of an empty HTML document."""
         html = HTML()
         self.assertEqual(html.tag, "html")
-        expected = "<!DOCTYPE html><html lang=\"en\" dir=\"ltr\"></html>"
+        expected = '<!DOCTYPE html><html lang="en" dir="ltr"></html>'
         self.assertEqual(str(html), expected)
 
     def test_inheritance(self):

@@ -1,5 +1,6 @@
 import unittest
 
+from ydnatl.core.element import HTMLElement
 from ydnatl.tags.layout import (
     Div,
     Section,
@@ -9,7 +10,6 @@ from ydnatl.tags.layout import (
     HorizontalRule,
     Main,
 )
-from ydnatl.core.element import HTMLElement
 
 
 class TestLayoutTags(unittest.TestCase):

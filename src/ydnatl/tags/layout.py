@@ -1,6 +1,5 @@
 from ydnatl.tags.tag_factory import simple_tag_class
 
-
 Div = simple_tag_class("div")
 Section = simple_tag_class("section")
 Header = simple_tag_class("header")

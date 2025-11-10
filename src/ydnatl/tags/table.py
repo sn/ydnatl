@@ -4,7 +4,6 @@ import json
 from ydnatl.core.element import HTMLElement
 from ydnatl.tags.tag_factory import simple_tag_class
 
-
 TableFooter = simple_tag_class("tfoot")
 TableHeaderCell = simple_tag_class("th")
 TableHeader = simple_tag_class("thead")

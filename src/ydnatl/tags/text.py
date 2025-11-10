@@ -1,6 +1,5 @@
 from ydnatl.tags.tag_factory import simple_tag_class
 
-
 H1 = simple_tag_class("h1")
 H2 = simple_tag_class("h2")
 H3 = simple_tag_class("h3")

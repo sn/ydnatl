@@ -1,6 +1,5 @@
 from ydnatl.tags.tag_factory import simple_tag_class
 
-
 Image = simple_tag_class("img", self_closing=True)
 Video = simple_tag_class("video")
 Audio = simple_tag_class("audio")

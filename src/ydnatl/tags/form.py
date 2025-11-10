@@ -1,7 +1,6 @@
 from ydnatl.core.element import HTMLElement
 from ydnatl.tags.tag_factory import simple_tag_class
 
-
 Textarea = simple_tag_class("textarea")
 BaseSelect = simple_tag_class("select")
 Option = simple_tag_class("option")
