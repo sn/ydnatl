@@ -6,8 +6,12 @@ BaseSelect = simple_tag_class("select")
 Option = simple_tag_class("option")
 Button = simple_tag_class("button")
 Fieldset = simple_tag_class("fieldset")
+Legend = simple_tag_class("legend")
 Input = simple_tag_class("input", self_closing=True)
 Optgroup = simple_tag_class("optgroup")
+Output = simple_tag_class("output")
+Progress = simple_tag_class("progress")
+Meter = simple_tag_class("meter")
 
 
 class Select(BaseSelect):
@@ -44,8 +48,12 @@ class Form(HTMLElement):
             Option,
             Button,
             Fieldset,
+            Legend,
             Label,
             Optgroup,
+            Output,
+            Progress,
+            Meter,
         )
         for item in items:
             if not isinstance(item, valid_types):

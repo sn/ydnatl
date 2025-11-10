@@ -7,9 +7,11 @@ from ydnatl.tags.html import (
     Body,
     Title,
     Meta,
+    Base,
     Link,
     Script,
     Style,
+    Noscript,
     IFrame,
 )
 
@@ -71,9 +73,44 @@ class TestHTMLTags(unittest.TestCase):
         expected = '<!DOCTYPE html><html lang="en" dir="ltr"></html>'
         self.assertEqual(str(html), expected)
 
+    def test_base(self):
+        """Test the creation of a base element."""
+        base = Base(href="https://www.example.com/", target="_blank")
+        self.assertEqual(base.tag, "base")
+        self.assertTrue(base.self_closing)
+        self.assertIn('href="https://www.example.com/"', str(base))
+        self.assertIn('target="_blank"', str(base))
+
+    def test_noscript(self):
+        """Test the creation of a noscript element."""
+        noscript = Noscript("JavaScript is required to view this page.")
+        self.assertEqual(noscript.tag, "noscript")
+        self.assertEqual(
+            str(noscript),
+            "<noscript>JavaScript is required to view this page.</noscript>",
+        )
+
+    def test_head_with_base(self):
+        """Test head element with base tag."""
+        head = Head(Base(href="https://www.example.com/"), Title("My Page"))
+        self.assertIn("<base", str(head))
+        self.assertIn("https://www.example.com/", str(head))
+
     def test_inheritance(self):
         """Test that all HTML-related classes inherit from HTMLElement."""
-        for cls in [HTML, Head, Body, Title, Meta, Link, Script, Style, IFrame]:
+        for cls in [
+            HTML,
+            Head,
+            Body,
+            Title,
+            Meta,
+            Base,
+            Link,
+            Script,
+            Style,
+            Noscript,
+            IFrame,
+        ]:
             self.assertTrue(issubclass(cls, HTMLElement))
 
 
