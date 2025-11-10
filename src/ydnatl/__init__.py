@@ -1,4 +1,5 @@
 from .core.element import HTMLElement
+from .core.fragment import Fragment
 from .tags.form import (
     Textarea,
     Select,
@@ -117,6 +118,7 @@ from .tags.text import (
 
 __all__ = [
     "HTMLElement",
+    "Fragment",
     # form
     "Textarea",
     "Select",
