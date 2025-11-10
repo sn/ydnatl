@@ -4,4 +4,4 @@ class ElementFactory:
 
     @staticmethod
     def inflate(self, data: dict):
-        return NotImplementedError("Not implemented")
+        return NotImplementedError("Not implemented - future release.")

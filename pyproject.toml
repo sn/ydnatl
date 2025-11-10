@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "ydnatl"
-version = "1.0.5"
-description = "YDNATL is a Python library that lets you build HTML using simple Python classes."
+version = "1.0.6"
+description = "YDNATL is a Python library that lets you build HTML UI using simple Python classes."
 readme = "README.md"
 requires-python = ">=3.8"
 license-files = ["LICEN[CS]E*"]
