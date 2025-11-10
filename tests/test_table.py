@@ -1,9 +1,10 @@
-import unittest
-import os
-import tempfile
 import csv
 import json
+import os
+import tempfile
+import unittest
 
+from ydnatl.core.element import HTMLElement
 from ydnatl.tags.table import (
     Table,
     TableFooter,
@@ -12,8 +13,10 @@ from ydnatl.tags.table import (
     TableBody,
     TableDataCell,
     TableRow,
+    Caption,
+    Col,
+    Colgroup,
 )
-from ydnatl.core.element import HTMLElement
 
 
 class TestTableTags(unittest.TestCase):
@@ -171,6 +174,45 @@ class TestTableTags(unittest.TestCase):
             str(table), '<table id="my-table" class="table-style"></table>'
         )
 
+    def test_caption(self):
+        """Test the creation of a caption element."""
+        caption = Caption("Table Title")
+        self.assertEqual(caption.tag, "caption")
+        self.assertEqual(str(caption), "<caption>Table Title</caption>")
+
+    def test_table_with_caption(self):
+        """Test table element with caption."""
+        table = Table(
+            Caption("Monthly Sales"),
+            TableRow(TableHeaderCell("Month"), TableHeaderCell("Sales")),
+        )
+        self.assertIn("<caption>Monthly Sales</caption>", str(table))
+
+    def test_col(self):
+        """Test the creation of a col element."""
+        col = Col(span="2", style="background-color: yellow")
+        self.assertEqual(col.tag, "col")
+        self.assertTrue(col.self_closing)
+        self.assertIn('span="2"', str(col))
+
+    def test_colgroup(self):
+        """Test the creation of a colgroup element."""
+        colgroup = Colgroup(Col(span="2"), Col(style="background-color: yellow"))
+        self.assertEqual(colgroup.tag, "colgroup")
+        self.assertIn("<col", str(colgroup))
+        self.assertIn('span="2"', str(colgroup))
+
+    def test_table_with_colgroup(self):
+        """Test table element with colgroup."""
+        table = Table(
+            Colgroup(
+                Col(style="background-color: #ddd"), Col(style="background-color: #fff")
+            ),
+            TableRow(TableDataCell("Data 1"), TableDataCell("Data 2")),
+        )
+        self.assertIn("<colgroup>", str(table))
+        self.assertIn("<col", str(table))
+
     def test_inheritance(self):
         """Test that all table-related classes inherit from HTMLElement."""
         for cls in [
@@ -181,6 +223,9 @@ class TestTableTags(unittest.TestCase):
             TableBody,
             TableDataCell,
             TableRow,
+            Caption,
+            Col,
+            Colgroup,
         ]:
             self.assertTrue(issubclass(cls, HTMLElement))
 

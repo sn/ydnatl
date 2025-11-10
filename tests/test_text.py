@@ -16,6 +16,7 @@ from ydnatl.tags.text import (
     Italic,
     Span,
     Strong,
+    Bold,
     Abbr,
     Link,
     Small,
@@ -23,12 +24,23 @@ from ydnatl.tags.text import (
     Subscript,
     Time,
     Code,
+    Del,
+    Ins,
+    Strikethrough,
+    Underline,
+    Kbd,
+    Samp,
+    Var,
+    Mark,
+    Dfn,
+    Br,
+    Wbr,
 )
 from ydnatl.core.element import HTMLElement
 
 
 class TestTextTags(unittest.TestCase):
-    
+
     def test_h1_with_attributes(self):
         """Test the creation of an H1 element with attributes."""
         h1 = H1("Heading 1", id="heading-1", class_name="heading-1")
@@ -181,6 +193,80 @@ class TestTextTags(unittest.TestCase):
             str(p), '<p id="my-paragraph" class="text-style">This is a paragraph.</p>'
         )
 
+    def test_bold(self):
+        """Test the creation of a bold element."""
+        bold = Bold("Bold text")
+        self.assertEqual(bold.tag, "b")
+        self.assertEqual(str(bold), "<b>Bold text</b>")
+
+    def test_del(self):
+        """Test the creation of a del element."""
+        deleted = Del("Deleted text")
+        self.assertEqual(deleted.tag, "del")
+        self.assertEqual(str(deleted), "<del>Deleted text</del>")
+
+    def test_ins(self):
+        """Test the creation of an ins element."""
+        inserted = Ins("Inserted text")
+        self.assertEqual(inserted.tag, "ins")
+        self.assertEqual(str(inserted), "<ins>Inserted text</ins>")
+
+    def test_strikethrough(self):
+        """Test the creation of a strikethrough element."""
+        strike = Strikethrough("Strikethrough text")
+        self.assertEqual(strike.tag, "s")
+        self.assertEqual(str(strike), "<s>Strikethrough text</s>")
+
+    def test_underline(self):
+        """Test the creation of an underline element."""
+        underline = Underline("Underlined text")
+        self.assertEqual(underline.tag, "u")
+        self.assertEqual(str(underline), "<u>Underlined text</u>")
+
+    def test_kbd(self):
+        """Test the creation of a kbd element."""
+        kbd = Kbd("Ctrl+C")
+        self.assertEqual(kbd.tag, "kbd")
+        self.assertEqual(str(kbd), "<kbd>Ctrl+C</kbd>")
+
+    def test_samp(self):
+        """Test the creation of a samp element."""
+        samp = Samp("Sample output")
+        self.assertEqual(samp.tag, "samp")
+        self.assertEqual(str(samp), "<samp>Sample output</samp>")
+
+    def test_var(self):
+        """Test the creation of a var element."""
+        var = Var("x")
+        self.assertEqual(var.tag, "var")
+        self.assertEqual(str(var), "<var>x</var>")
+
+    def test_mark(self):
+        """Test the creation of a mark element."""
+        mark = Mark("Highlighted text")
+        self.assertEqual(mark.tag, "mark")
+        self.assertEqual(str(mark), "<mark>Highlighted text</mark>")
+
+    def test_dfn(self):
+        """Test the creation of a dfn element."""
+        dfn = Dfn("Definition term")
+        self.assertEqual(dfn.tag, "dfn")
+        self.assertEqual(str(dfn), "<dfn>Definition term</dfn>")
+
+    def test_br(self):
+        """Test the creation of a br element."""
+        br = Br()
+        self.assertEqual(br.tag, "br")
+        self.assertTrue(br.self_closing)
+        self.assertEqual(str(br), "<br />")
+
+    def test_wbr(self):
+        """Test the creation of a wbr element."""
+        wbr = Wbr()
+        self.assertEqual(wbr.tag, "wbr")
+        self.assertTrue(wbr.self_closing)
+        self.assertEqual(str(wbr), "<wbr />")
+
     def test_inheritance(self):
         """Test that all text-related classes inherit from HTMLElement."""
         for cls in [
@@ -199,6 +285,7 @@ class TestTextTags(unittest.TestCase):
             Italic,
             Span,
             Strong,
+            Bold,
             Abbr,
             Link,
             Small,
@@ -206,6 +293,17 @@ class TestTextTags(unittest.TestCase):
             Subscript,
             Time,
             Code,
+            Del,
+            Ins,
+            Strikethrough,
+            Underline,
+            Kbd,
+            Samp,
+            Var,
+            Mark,
+            Dfn,
+            Br,
+            Wbr,
         ]:
             self.assertTrue(issubclass(cls, HTMLElement))
 

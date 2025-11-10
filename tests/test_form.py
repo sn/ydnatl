@@ -1,17 +1,21 @@
 import unittest
 
+from ydnatl.core.element import HTMLElement
 from ydnatl.tags.form import (
     Textarea,
     Select,
     Option,
     Button,
     Fieldset,
+    Legend,
     Form,
     Input,
     Label,
     Optgroup,
+    Output,
+    Progress,
+    Meter,
 )
-from ydnatl.core.element import HTMLElement
 
 
 class TestFormTags(unittest.TestCase):
@@ -96,6 +100,42 @@ class TestFormTags(unittest.TestCase):
             '<optgroup label="Group 1"><option>Option 1</option><option>Option 2</option></optgroup>',
         )
 
+    def test_legend(self):
+        """Test the creation of a legend element."""
+        legend = Legend("Personal Information")
+        self.assertEqual(legend.tag, "legend")
+        self.assertEqual(str(legend), "<legend>Personal Information</legend>")
+
+    def test_fieldset_with_legend(self):
+        """Test fieldset element with legend and fields."""
+        fieldset = Fieldset(
+            Legend("Contact Details"),
+            Input(type="email", name="email"),
+        )
+        expected = '<fieldset><legend>Contact Details</legend><input type="email" name="email" /></fieldset>'
+        self.assertEqual(str(fieldset), expected)
+
+    def test_output(self):
+        """Test the creation of an output element."""
+        output = Output("42", for_attr="calculation")
+        self.assertEqual(output.tag, "output")
+        self.assertIn("42", str(output))
+
+    def test_progress(self):
+        """Test the creation of a progress element."""
+        progress = Progress(value="70", max="100")
+        self.assertEqual(progress.tag, "progress")
+        self.assertIn('value="70"', str(progress))
+        self.assertIn('max="100"', str(progress))
+
+    def test_meter(self):
+        """Test the creation of a meter element."""
+        meter = Meter(value="6", min="0", max="10")
+        self.assertEqual(meter.tag, "meter")
+        self.assertIn('value="6"', str(meter))
+        self.assertIn('min="0"', str(meter))
+        self.assertIn('max="10"', str(meter))
+
     def test_inheritance(self):
         """Test that all form-related classes inherit from HTMLElement."""
         for cls in [
@@ -104,10 +144,14 @@ class TestFormTags(unittest.TestCase):
             Option,
             Button,
             Fieldset,
+            Legend,
             Form,
             Input,
             Label,
             Optgroup,
+            Output,
+            Progress,
+            Meter,
         ]:
             self.assertTrue(issubclass(cls, HTMLElement))
 

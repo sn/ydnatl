@@ -1,4 +1,5 @@
 from .core.element import HTMLElement
+from .core.fragment import Fragment
 from .tags.form import (
     Textarea,
     Select,
@@ -9,6 +10,10 @@ from .tags.form import (
     Input,
     Label,
     Optgroup,
+    Legend,
+    Output,
+    Progress,
+    Meter,
 )
 from .tags.html import (
     HTML,
@@ -20,8 +25,23 @@ from .tags.html import (
     Script,
     Style,
     IFrame,
+    Base,
+    Noscript,
 )
-from .tags.layout import Div, Section, Header, Nav, Footer, HorizontalRule, Main
+from .tags.layout import (
+    Div,
+    Section,
+    Header,
+    Nav,
+    Footer,
+    HorizontalRule,
+    Main,
+    Article,
+    Aside,
+    Details,
+    Summary,
+    Dialog,
+)
 from .tags.lists import (
     UnorderedList,
     OrderedList,
@@ -31,7 +51,22 @@ from .tags.lists import (
     DescriptionList,
     DescriptionTerm,
 )
-from .tags.media import Image, Video, Audio, Source, Picture, Figure, Figcaption, Canvas
+from .tags.media import (
+    Image,
+    Video,
+    Audio,
+    Source,
+    Picture,
+    Figure,
+    Figcaption,
+    Canvas,
+    Track,
+    Embed,
+    Object,
+    Param,
+    Map,
+    Area,
+)
 from .tags.table import (
     Table,
     TableFooter,
@@ -40,6 +75,9 @@ from .tags.table import (
     TableBody,
     TableDataCell,
     TableRow,
+    Caption,
+    Col,
+    Colgroup,
 )
 from .tags.text import (
     H1,
@@ -64,10 +102,23 @@ from .tags.text import (
     Subscript,
     Time,
     Code,
+    Bold,
+    Del,
+    Ins,
+    Strikethrough,
+    Underline,
+    Kbd,
+    Samp,
+    Var,
+    Mark,
+    Dfn,
+    Br,
+    Wbr,
 )
 
 __all__ = [
     "HTMLElement",
+    "Fragment",
     # form
     "Textarea",
     "Select",
@@ -78,6 +129,10 @@ __all__ = [
     "Input",
     "Label",
     "Optgroup",
+    "Legend",
+    "Output",
+    "Progress",
+    "Meter",
     # html
     "HTML",
     "Head",
@@ -88,6 +143,8 @@ __all__ = [
     "Script",
     "Style",
     "IFrame",
+    "Base",
+    "Noscript",
     # layout
     "Div",
     "Section",
@@ -96,6 +153,11 @@ __all__ = [
     "Footer",
     "HorizontalRule",
     "Main",
+    "Article",
+    "Aside",
+    "Details",
+    "Summary",
+    "Dialog",
     # lists
     "UnorderedList",
     "OrderedList",
@@ -113,6 +175,12 @@ __all__ = [
     "Figure",
     "Figcaption",
     "Canvas",
+    "Track",
+    "Embed",
+    "Object",
+    "Param",
+    "Map",
+    "Area",
     # table
     "Table",
     "TableFooter",
@@ -121,6 +189,9 @@ __all__ = [
     "TableBody",
     "TableDataCell",
     "TableRow",
+    "Caption",
+    "Col",
+    "Colgroup",
     # text
     "H1",
     "H2",
@@ -144,4 +215,16 @@ __all__ = [
     "Subscript",
     "Time",
     "Code",
+    "Bold",
+    "Del",
+    "Ins",
+    "Strikethrough",
+    "Underline",
+    "Kbd",
+    "Samp",
+    "Var",
+    "Mark",
+    "Dfn",
+    "Br",
+    "Wbr",
 ]

@@ -5,10 +5,17 @@ YDNATL (**Y**ou **D**on't **N**eed **A**nother **T**emplate **L**anguage) is a P
 - ✓ Declarative syntax for building HTML documents (like Flutter)
 - ✓ Easy to read and write
 - ✓ Supports all HTML5 elements
+- ✓ JSON serialization/deserialization for saving and loading UI structures
+- ✓ Pretty printing with indentation for readable HTML
+- ✓ CSS style helpers for easy inline styling
+- ✓ Method chaining for fluent interfaces
+- ✓ Context manager support for clean nesting
+- ✓ Fragment support for wrapper-free grouping
 - ✓ Lightweight
 - ✓ Extremely fast
 - ✓ Fully customisable
 - ✓ Compose HTML efficiently
+- ✓ Lean & clean Python with no dependencies
 
 ## Requirements
 
@@ -38,7 +45,6 @@ page = HTML(
     )
 )
 
-# Render the HTML document
 print(page.render())
 ```
 
@@ -106,16 +112,242 @@ div.add_attributes([("aria-label", "Main content"), ("tabindex", "0")])
 # HTML output: <div id="my-div" class="container" data-value="123" role="main" aria-label="Main content" tabindex="0"></div>
 ```
 
+### Pretty Printing
+
+YDNATL supports pretty printing with automatic indentation for readable HTML output:
+
+```python
+from ydnatl import *
+
+page = HTML(
+    Head(Title("My Page")),
+    Body(
+        Div(
+            H1("Hello, World!"),
+            Paragraph("This is a paragraph.")
+        )
+    )
+)
+
+# Compact output (default)
+print(page.render())
+# Output: <!DOCTYPE html><html lang="en" dir="ltr"><head><title>My Page</title></head>...
+
+# Pretty output with indentation
+print(page.render(pretty=True))
+# Output:
+# <!DOCTYPE html>
+# <html lang="en" dir="ltr">
+#   <head>
+#     <title>My Page</title>
+#   </head>
+#   <body>
+#     <div>
+#       <h1>Hello, World!</h1>
+#       <p>This is a paragraph.</p>
+#     </div>
+#   </body>
+# </html>
+```
+
+Pretty printing is perfect for:
+- Development and debugging
+- Generating human-readable HTML files
+- Documentation and tutorials
+- Inspecting complex structures
+
+### CSS Style Helpers
+
+YDNATL provides convenient methods for working with inline CSS styles:
+
+```python
+from ydnatl import *
+
+# Create element and add styles
+div = Div("Styled content")
+
+# Add single style
+div.add_style("color", "blue")
+div.add_style("font-size", "16px")
+
+# Add multiple styles at once
+div.add_styles({
+    "background-color": "#f0f0f0",
+    "padding": "20px",
+    "margin": "10px",
+    "border-radius": "5px"
+})
+
+# Get a specific style value
+color = div.get_style("color")  # Returns "blue"
+
+# Remove a style
+div.remove_style("margin")
+
+# Result: <div style="color: blue; font-size: 16px; background-color: #f0f0f0; padding: 20px; border-radius: 5px">Styled content</div>
+```
+
+### Method Chaining
+
+All builder methods return `self`, enabling fluent method chaining:
+
+```python
+from ydnatl import *
+
+# Chain multiple operations together
+container = (Div()
+    .add_attribute("id", "main-container")
+    .add_attribute("class", "wrapper")
+    .add_style("background", "#fff")
+    .add_styles({"padding": "20px", "margin": "0 auto"})
+    .append(H1("Welcome"))
+    .append(Paragraph("This is the main content."))
+    .append(Paragraph("Another paragraph here.")))
+
+print(container.render())
+```
+
+Chainable methods:
+- `append()` - Add children
+- `prepend()` - Add children at the beginning
+- `add_attribute()` - Add single attribute
+- `add_attributes()` - Add multiple attributes
+- `remove_attribute()` - Remove an attribute
+- `add_style()` - Add single CSS style
+- `add_styles()` - Add multiple CSS styles
+- `remove_style()` - Remove a CSS style
+- `clear()` - Remove all children
+- `remove_all()` - Remove children matching a condition
+
+### Context Manager Support
+
+Use elements as context managers for cleaner, more intuitive nesting:
+
+```python
+from ydnatl import *
+
+# Using context managers
+with Div(id="container", class_name="main") as container:
+    with Section(class_name="content") as section:
+        section.append(H1("Title"))
+        section.append(Paragraph("Content goes here"))
+
+    container.append(section)
+    container.append(Footer(Paragraph("Footer text")))
+
+print(container.render())
+```
+
+### Fragment Support
+
+Use `Fragment` to group elements without adding a wrapper tag:
+
+```python
+from ydnatl import *
+
+# Without Fragment - adds extra div wrapper
+content = Div(
+    H1("Title"),
+    Paragraph("Content")
+)
+# Output: <div><h1>Title</h1><p>Content</p></div>
+
+# With Fragment - no wrapper tag
+content = Fragment(
+    H1("Title"),
+    Paragraph("Content")
+)
+# Output: <h1>Title</h1><p>Content</p>
+
+# Perfect for conditional rendering
+def render_items(items, show_header=True):
+    fragment = Fragment()
+
+    if show_header:
+        fragment.append(H2("Items List"))
+
+    for item in items:
+        fragment.append(Paragraph(item))
+
+    return fragment
+
+# Use in parent element
+page = Div(
+    render_items(["Item 1", "Item 2", "Item 3"], show_header=True)
+)
+# Output: <div><h2>Items List</h2><p>Item 1</p><p>Item 2</p><p>Item 3</p></div>
+```
+
+**Fragment use cases:**
+- Conditional rendering without wrapper divs
+- Returning multiple elements from functions
+- List composition and iteration
+- Cleaner component architecture
+
+### JSON Serialization
+
+YDNATL supports JSON serialization and deserialization, making it perfect for drag-and-drop website builders, saving UI states, or transmitting page structures over APIs.
+
+```python
+from ydnatl import *
+
+# Build a page structure
+page = Div(id="page", class_name="container")
+page.append(
+    H1("Welcome"),
+    Section(
+        Paragraph("This is a paragraph"),
+        Paragraph("Another paragraph", class_name="highlight")
+    )
+)
+
+# Serialize to JSON (for saving/storing)
+json_data = page.to_json(indent=2)
+print(json_data)
+
+# Later... deserialize from JSON (for loading)
+from ydnatl.core.element import HTMLElement
+restored_page = HTMLElement.from_json(json_data)
+
+# Generate HTML (output will be identical)
+print(str(restored_page))
+```
+
+The JSON format is simple and clean:
+
+```json
+{
+  "tag": "div",
+  "self_closing": false,
+  "attributes": {
+    "id": "page",
+    "class": "container"
+  },
+  "text": "",
+  "children": [...]
+}
+```
+
+**Use cases:**
+- Save/load website layouts to/from a database
+- Implement undo/redo functionality
+- Store pre-built templates as JSON
+- Version control for page structures
+- API communication between frontend and backend
+- Drag-and-drop website builders
+
 ## Great For
 
 - CLI tools
-- Site builders
+- Drag-and-drop website builders
+- Site builders with save/load functionality
 - Web frameworks
 - Alternative to heavy template engines
 - Static site generators
 - Documentation generators
 - LLM's and AI tooling that generate interfaces dynamically
 - Creating frontends for headless platforms (CMS/CRM etc)
+- Applications requiring UI state serialization
 
 ## Examples
 
@@ -198,34 +430,43 @@ YDNATL has full test coverage. To run the tests locally, use:
 pytest
 ```
 
-or:
-
-```shell
-python run_test.py
-```
-
 ## Element Methods:
 
-- `instance.prepend()`
-- `instance.append()`
-- `instance.filter()`
-- `instance.remove_all()`
-- `instance.clear()`
-- `instance.pop()`
-- `instance.first()`
-- `instance.last()`
-- `instance.add_attribute()`
-- `instance.add_attributes()`
-- `instance.remove_attribute()`
-- `instance.get_attribute()`
-- `instance.has_attribute()`
-- `instance.generate_id()`
-- `instance.clone()`
-- `instance.find_by_attribute()`
-- `instance.get_attributes()`
-- `instance.count_children()`
-- `instance.render()`
-- `instance.to_dict()`
+**Element Manipulation:**
+- `instance.prepend()` - Prepend children (returns self for chaining)
+- `instance.append()` - Append children (returns self for chaining)
+- `instance.filter()` - Filter children by condition
+- `instance.remove_all()` - Remove children matching condition (returns self for chaining)
+- `instance.clear()` - Remove all children (returns self for chaining)
+- `instance.pop()` - Remove and return child at index
+- `instance.first()` - Get first child
+- `instance.last()` - Get last child
+- `instance.replace_child()` - Replace child at index
+- `instance.clone()` - Deep copy of element
+- `instance.find_by_attribute()` - Find child by attribute value
+- `instance.count_children()` - Count direct children
+
+**Attribute Management:**
+- `instance.add_attribute()` - Add single attribute (returns self for chaining)
+- `instance.add_attributes()` - Add multiple attributes (returns self for chaining)
+- `instance.remove_attribute()` - Remove attribute (returns self for chaining)
+- `instance.get_attribute()` - Get attribute value
+- `instance.has_attribute()` - Check if attribute exists
+- `instance.get_attributes()` - Get all or specific attributes
+- `instance.generate_id()` - Generate unique ID if not present
+
+**CSS Style Management:**
+- `instance.add_style()` - Add single CSS style (returns self for chaining)
+- `instance.add_styles()` - Add multiple CSS styles (returns self for chaining)
+- `instance.get_style()` - Get specific style value
+- `instance.remove_style()` - Remove CSS style (returns self for chaining)
+
+**Rendering:**
+- `instance.render(pretty=False)` - Render to HTML string (pretty=True for indented output)
+- `instance.to_dict()` - Convert to dictionary
+- `instance.to_json(indent=None)` - Serialize to JSON string
+- `HTMLElement.from_dict(data)` - Reconstruct from dictionary (class method)
+- `HTMLElement.from_json(json_str)` - Reconstruct from JSON string (class method)
 
 ## Events
 
@@ -244,15 +485,15 @@ python run_test.py
 
 ## Modules
 
-| **Module**         | **Purpose**                       | **Key Elements** |
-| ------------------ | --------------------------------- | ------------ |
-| ydnatl.tags.form   | Common HTML form elements         | Form, Input, Button, Select, Textarea |
-| ydnatl.tags.html   | Structural HTML document elements | HTML, Head, Body, Title, Meta, Script |
-| ydnatl.tags.layout | Layout related HTML tags          | Div, Section, Header, Nav, Footer, Main |
-| ydnatl.tags.lists  | HTML list elements                | UnorderedList, OrderedList, ListItem |
-| ydnatl.tags.media  | Media related HTML elements       | Image, Video, Audio, Figure, Canvas |
+| **Module**         | **Purpose**                       | **Key Elements**                                |
+|--------------------|-----------------------------------|-------------------------------------------------|
+| ydnatl.tags.form   | Common HTML form elements         | Form, Input, Button, Select, Textarea           |
+| ydnatl.tags.html   | Structural HTML document elements | HTML, Head, Body, Title, Meta, Script           |
+| ydnatl.tags.layout | Layout related HTML tags          | Div, Section, Header, Nav, Footer, Main         |
+| ydnatl.tags.lists  | HTML list elements                | UnorderedList, OrderedList, ListItem            |
+| ydnatl.tags.media  | Media related HTML elements       | Image, Video, Audio, Figure, Canvas             |
 | ydnatl.tags.table  | HTML table elements               | Table, TableRow, TableHeaderCell, TableDataCell |
-| ydnatl.tags.text   | HTML text elements                | H1-H6, Paragraph, Span, Strong, Em |
+| ydnatl.tags.text   | HTML text elements                | H1-H6, Paragraph, Span, Strong, Em              |
 
 ## Importing
 
@@ -279,7 +520,11 @@ from ydnatl.tags.text import H1, Paragraph
 - `Option()`
 - `Button()`
 - `Fieldset()`
+- `Legend()`
 - `Optgroup()`
+- `Output()`
+- `Progress()`
+- `Meter()`
 
 #### ydnatl.tags.html
 
@@ -288,20 +533,27 @@ from ydnatl.tags.text import H1, Paragraph
 - `Body()`
 - `Title()`
 - `Meta()`
+- `Base()`
 - `HtmlLink()` (use instead of `Link()` to avoid conflicts)
 - `Script()`
 - `Style()`
+- `Noscript()`
 - `IFrame()`
 
 #### ydnatl.tags.layout
 
 - `Div()`
 - `Section()`
+- `Article()`
+- `Aside()`
 - `Header()`
 - `Nav()`
 - `Footer()`
 - `HorizontalRule()`
 - `Main()`
+- `Details()`
+- `Summary()`
+- `Dialog()`
 
 #### ydnatl.tags.lists
 
@@ -319,10 +571,16 @@ from ydnatl.tags.text import H1, Paragraph
 - `Video()`
 - `Audio()`
 - `Source()`
+- `Track()`
 - `Picture()`
 - `Figure()`
 - `Figcaption()`
 - `Canvas()`
+- `Embed()`
+- `Object()`
+- `Param()`
+- `Map()`
+- `Area()`
 
 #### ydnatl.tags.table
 
@@ -333,6 +591,9 @@ from ydnatl.tags.text import H1, Paragraph
 - `TableBody()`
 - `TableDataCell()`
 - `TableRow()`
+- `Caption()`
+- `Col()`
+- `Colgroup()`
 
 #### ydnatl.tags.text
 
@@ -351,6 +612,7 @@ from ydnatl.tags.text import H1, Paragraph
 - `Italic()`
 - `Span()`
 - `Strong()`
+- `Bold()`
 - `Abbr()`
 - `Link()`
 - `Small()`
@@ -358,6 +620,17 @@ from ydnatl.tags.text import H1, Paragraph
 - `Subscript()`
 - `Time()`
 - `Code()`
+- `Del()`
+- `Ins()`
+- `Strikethrough()`
+- `Underline()`
+- `Kbd()`
+- `Samp()`
+- `Var()`
+- `Mark()`
+- `Dfn()`
+- `Br()`
+- `Wbr()`
 
 ## Creating your own elements or components
 
@@ -403,9 +676,9 @@ This will produce:
 </mytag>
 ```
 
-You can use the event callbacks or properties/methods directly to load further child elements, fetch data or any other programmatic task to enrich or contruct your tag on loading, render or even after render.
+You can use the event callbacks or properties/methods directly to load further child elements, fetch data or any other programmatic task to enrich or construct your tag on loading, render or even after render.
 
-You can take this further and contruct an entire page as a component where everything needed for the page is contained within the element class itself. This is a great way to build websites.
+You can take this further and construct an entire page as a component where everything needed for the page is contained within the element class itself. This is a great way to build websites.
 
 ## Contributions
 
@@ -430,8 +703,6 @@ pip install ".[dev]"
 3. Run the tests:
 
 ```bash
-python run_tests.py
-# or
 pytest
 ```
 

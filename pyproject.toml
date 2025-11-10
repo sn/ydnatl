@@ -4,13 +4,13 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "ydnatl"
-version = "1.0.5"
-description = "YDNATL is a Python library that lets you build HTML using simple Python classes."
+version = "1.0.6"
+description = "YDNATL is a Python library that lets you build HTML UI using simple Python classes."
 readme = "README.md"
 requires-python = ">=3.8"
 license-files = ["LICEN[CS]E*"]
 authors = [
-  { name = "Sean Nieuwoudt", email = "sean@underwulf.com" }
+    { name = "Sean Nieuwoudt", email = "sean@underwulf.com" }
 ]
 classifiers = [
     "Programming Language :: Python :: 3",
@@ -26,17 +26,19 @@ Repository = "https://github.com/sn/ydnatl"
 Issues = "https://github.com/sn/ydnatl/issues"
 
 [tool.setuptools]
-package-dir = {"" = "src"}
+package-dir = { "" = "src" }
 
 [tool.setuptools.packages.find]
 where = ["src"]
 
 [project.optional-dependencies]
 dev = [
-  "build",
-  "twine",
-  "pytest",
-  "iniconfig",
-  "pluggy",
-  "packaging"
+    "build",
+    "twine",
+    "pytest",
+    "iniconfig",
+    "pluggy",
+    "packaging",
+    "black",
+    "flake8"
 ]

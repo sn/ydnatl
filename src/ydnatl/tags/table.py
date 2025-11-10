@@ -4,13 +4,15 @@ import json
 from ydnatl.core.element import HTMLElement
 from ydnatl.tags.tag_factory import simple_tag_class
 
-
 TableFooter = simple_tag_class("tfoot")
 TableHeaderCell = simple_tag_class("th")
 TableHeader = simple_tag_class("thead")
 TableBody = simple_tag_class("tbody")
 TableDataCell = simple_tag_class("td")
 TableRow = simple_tag_class("tr")
+Caption = simple_tag_class("caption")
+Col = simple_tag_class("col", self_closing=True)
+Colgroup = simple_tag_class("colgroup")
 
 
 class Table(HTMLElement):
