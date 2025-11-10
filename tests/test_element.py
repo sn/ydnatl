@@ -430,5 +430,266 @@ class TestHTMLElement(unittest.TestCase):
         self.assertEqual(str(root), str(restored))
 
 
+    def test_render_pretty_simple(self):
+        """Test pretty printing with simple nested structure."""
+        element = HTMLElement(tag="div", id="container")
+        element.append(
+            HTMLElement("Hello", tag="h1"),
+            HTMLElement("World", tag="p")
+        )
+
+        # Test compact (default)
+        compact = element.render(pretty=False)
+        self.assertNotIn("\n", compact)
+        self.assertEqual(compact, '<div id="container"><h1>Hello</h1><p>World</p></div>')
+
+        # Test pretty
+        pretty = element.render(pretty=True)
+        self.assertIn("\n", pretty)
+        self.assertIn("  ", pretty)  # Should have indentation
+
+    def test_render_pretty_deeply_nested(self):
+        """Test pretty printing with deeply nested structure."""
+        root = HTMLElement(tag="div")
+        level1 = HTMLElement(tag="section")
+        level2 = HTMLElement(tag="article")
+        level2.append(HTMLElement("Content", tag="p"))
+        level1.append(level2)
+        root.append(level1)
+
+        pretty = root.render(pretty=True)
+        lines = pretty.strip().split("\n")
+
+        # Should have multiple indentation levels
+        self.assertTrue(any(line.startswith("    ") for line in lines))
+        self.assertTrue(any(line.startswith("  ") for line in lines))
+
+    def test_render_pretty_self_closing(self):
+        """Test pretty printing with self-closing tags."""
+        element = HTMLElement(tag="br", self_closing=True)
+        pretty = element.render(pretty=True)
+        self.assertEqual(pretty, "<br />\n")
+
+    def test_add_style_single(self):
+        """Test adding a single CSS style."""
+        element = HTMLElement(tag="div")
+        element.add_style("color", "red")
+
+        self.assertEqual(element.get_attribute("style"), "color: red")
+        rendered = str(element)
+        self.assertIn('style="color: red"', rendered)
+
+    def test_add_styles_multiple(self):
+        """Test adding multiple CSS styles at once."""
+        element = HTMLElement(tag="div")
+        element.add_styles({
+            "color": "blue",
+            "font-size": "14px",
+            "margin": "10px"
+        })
+
+        style = element.get_attribute("style")
+        self.assertIn("color: blue", style)
+        self.assertIn("font-size: 14px", style)
+        self.assertIn("margin: 10px", style)
+
+    def test_add_style_updates_existing(self):
+        """Test that adding styles updates existing style attribute."""
+        element = HTMLElement(tag="div", style="color: red")
+        element.add_style("font-size", "16px")
+
+        style = element.get_attribute("style")
+        self.assertIn("color: red", style)
+        self.assertIn("font-size: 16px", style)
+
+    def test_get_style(self):
+        """Test getting individual CSS style values."""
+        element = HTMLElement(tag="div")
+        element.add_styles({"color": "green", "padding": "5px"})
+
+        self.assertEqual(element.get_style("color"), "green")
+        self.assertEqual(element.get_style("padding"), "5px")
+        self.assertIsNone(element.get_style("margin"))
+
+    def test_remove_style(self):
+        """Test removing CSS styles."""
+        element = HTMLElement(tag="div")
+        element.add_styles({
+            "color": "red",
+            "font-size": "14px",
+            "margin": "10px"
+        })
+
+        element.remove_style("margin")
+
+        style = element.get_attribute("style")
+        self.assertNotIn("margin", style)
+        self.assertIn("color: red", style)
+        self.assertIn("font-size: 14px", style)
+
+    def test_remove_style_last_one(self):
+        """Test that removing the last style removes the style attribute."""
+        element = HTMLElement(tag="div")
+        element.add_style("color", "red")
+
+        self.assertTrue(element.has_attribute("style"))
+
+        element.remove_style("color")
+
+        self.assertFalse(element.has_attribute("style"))
+
+    def test_parse_styles(self):
+        """Test the _parse_styles static method."""
+        styles_dict = HTMLElement._parse_styles("color: red; font-size: 14px; margin: 10px")
+
+        self.assertEqual(styles_dict["color"], "red")
+        self.assertEqual(styles_dict["font-size"], "14px")
+        self.assertEqual(styles_dict["margin"], "10px")
+
+    def test_parse_styles_empty(self):
+        """Test parsing empty style string."""
+        styles_dict = HTMLElement._parse_styles("")
+        self.assertEqual(styles_dict, {})
+
+    def test_format_styles(self):
+        """Test the _format_styles static method."""
+        styles_dict = {"color": "blue", "font-size": "16px"}
+        formatted = HTMLElement._format_styles(styles_dict)
+
+        self.assertIn("color: blue", formatted)
+        self.assertIn("font-size: 16px", formatted)
+
+    def test_context_manager(self):
+        """Test using HTMLElement as a context manager."""
+        with HTMLElement(tag="div", id="test") as element:
+            element.append(HTMLElement("Child", tag="span"))
+            self.assertEqual(element.count_children(), 1)
+
+        # Should render correctly after context exit
+        self.assertEqual(str(element), '<div id="test"><span>Child</span></div>')
+
+    def test_context_manager_nested(self):
+        """Test nested context managers."""
+        with HTMLElement(tag="div") as outer:
+            with HTMLElement(tag="section") as inner:
+                inner.append(HTMLElement("Text", tag="p"))
+            outer.append(inner)
+
+        self.assertEqual(outer.count_children(), 1)
+        self.assertEqual(outer.children[0].count_children(), 1)
+
+    def test_method_chaining_append(self):
+        """Test that append returns self for chaining."""
+        element = HTMLElement(tag="div")
+        result = element.append(HTMLElement(tag="span"))
+
+        self.assertIs(result, element)
+
+        # Test actual chaining
+        element = (HTMLElement(tag="div")
+                   .append(HTMLElement(tag="h1"))
+                   .append(HTMLElement(tag="p")))
+
+        self.assertEqual(element.count_children(), 2)
+
+    def test_method_chaining_prepend(self):
+        """Test that prepend returns self for chaining."""
+        element = HTMLElement(tag="div")
+        result = element.prepend(HTMLElement(tag="span"))
+
+        self.assertIs(result, element)
+
+    def test_method_chaining_add_attribute(self):
+        """Test that add_attribute returns self for chaining."""
+        element = HTMLElement(tag="div")
+        result = element.add_attribute("id", "test")
+
+        self.assertIs(result, element)
+
+        # Test actual chaining
+        element = (HTMLElement(tag="div")
+                   .add_attribute("id", "main")
+                   .add_attribute("class", "container"))
+
+        self.assertEqual(element.get_attribute("id"), "main")
+        self.assertEqual(element.get_attribute("class"), "container")
+
+    def test_method_chaining_add_attributes(self):
+        """Test that add_attributes returns self for chaining."""
+        element = HTMLElement(tag="div")
+        result = element.add_attributes([("id", "test")])
+
+        self.assertIs(result, element)
+
+    def test_method_chaining_remove_attribute(self):
+        """Test that remove_attribute returns self for chaining."""
+        element = HTMLElement(tag="div", id="test")
+        result = element.remove_attribute("id")
+
+        self.assertIs(result, element)
+
+    def test_method_chaining_add_style(self):
+        """Test that add_style returns self for chaining."""
+        element = HTMLElement(tag="div")
+        result = element.add_style("color", "red")
+
+        self.assertIs(result, element)
+
+        # Test actual chaining
+        element = (HTMLElement(tag="div")
+                   .add_style("color", "blue")
+                   .add_style("font-size", "14px"))
+
+        self.assertEqual(element.get_style("color"), "blue")
+        self.assertEqual(element.get_style("font-size"), "14px")
+
+    def test_method_chaining_add_styles(self):
+        """Test that add_styles returns self for chaining."""
+        element = HTMLElement(tag="div")
+        result = element.add_styles({"color": "red"})
+
+        self.assertIs(result, element)
+
+    def test_method_chaining_remove_style(self):
+        """Test that remove_style returns self for chaining."""
+        element = HTMLElement(tag="div")
+        element.add_style("color", "red")
+        result = element.remove_style("color")
+
+        self.assertIs(result, element)
+
+    def test_method_chaining_clear(self):
+        """Test that clear returns self for chaining."""
+        element = HTMLElement(tag="div")
+        element.append(HTMLElement(tag="span"))
+        result = element.clear()
+
+        self.assertIs(result, element)
+
+    def test_method_chaining_remove_all(self):
+        """Test that remove_all returns self for chaining."""
+        element = HTMLElement(tag="div")
+        element.append(HTMLElement(tag="span"))
+        result = element.remove_all(lambda x: x.tag == "span")
+
+        self.assertIs(result, element)
+
+    def test_method_chaining_complex(self):
+        """Test complex method chaining scenario."""
+        element = (HTMLElement(tag="div")
+                   .add_attribute("id", "container")
+                   .add_attribute("class", "wrapper")
+                   .add_style("background", "#f0f0f0")
+                   .add_styles({"padding": "20px", "margin": "10px"})
+                   .append(HTMLElement("Title", tag="h1"))
+                   .append(HTMLElement("Content", tag="p")))
+
+        self.assertEqual(element.get_attribute("id"), "container")
+        self.assertEqual(element.get_attribute("class"), "wrapper")
+        self.assertEqual(element.get_style("background"), "#f0f0f0")
+        self.assertEqual(element.get_style("padding"), "20px")
+        self.assertEqual(element.count_children(), 2)
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -6,10 +6,16 @@ YDNATL (**Y**ou **D**on't **N**eed **A**nother **T**emplate **L**anguage) is a P
 - ✓ Easy to read and write
 - ✓ Supports all HTML5 elements
 - ✓ JSON serialization/deserialization for saving and loading UI structures
+- ✓ Pretty printing with indentation for readable HTML
+- ✓ CSS style helpers for easy inline styling
+- ✓ Method chaining for fluent interfaces
+- ✓ Context manager support for clean nesting
+- ✓ Fragment support for wrapper-free grouping
 - ✓ Lightweight
 - ✓ Extremely fast
 - ✓ Fully customisable
 - ✓ Compose HTML efficiently
+- ✓ Lean & clean Python with no dependencies
 
 ## Requirements
 
@@ -105,6 +111,178 @@ div.add_attributes([("aria-label", "Main content"), ("tabindex", "0")])
 
 # HTML output: <div id="my-div" class="container" data-value="123" role="main" aria-label="Main content" tabindex="0"></div>
 ```
+
+### Pretty Printing
+
+YDNATL supports pretty printing with automatic indentation for readable HTML output:
+
+```python
+from ydnatl import *
+
+page = HTML(
+    Head(Title("My Page")),
+    Body(
+        Div(
+            H1("Hello, World!"),
+            Paragraph("This is a paragraph.")
+        )
+    )
+)
+
+# Compact output (default)
+print(page.render())
+# Output: <!DOCTYPE html><html lang="en" dir="ltr"><head><title>My Page</title></head>...
+
+# Pretty output with indentation
+print(page.render(pretty=True))
+# Output:
+# <!DOCTYPE html>
+# <html lang="en" dir="ltr">
+#   <head>
+#     <title>My Page</title>
+#   </head>
+#   <body>
+#     <div>
+#       <h1>Hello, World!</h1>
+#       <p>This is a paragraph.</p>
+#     </div>
+#   </body>
+# </html>
+```
+
+Pretty printing is perfect for:
+- Development and debugging
+- Generating human-readable HTML files
+- Documentation and tutorials
+- Inspecting complex structures
+
+### CSS Style Helpers
+
+YDNATL provides convenient methods for working with inline CSS styles:
+
+```python
+from ydnatl import *
+
+# Create element and add styles
+div = Div("Styled content")
+
+# Add single style
+div.add_style("color", "blue")
+div.add_style("font-size", "16px")
+
+# Add multiple styles at once
+div.add_styles({
+    "background-color": "#f0f0f0",
+    "padding": "20px",
+    "margin": "10px",
+    "border-radius": "5px"
+})
+
+# Get a specific style value
+color = div.get_style("color")  # Returns "blue"
+
+# Remove a style
+div.remove_style("margin")
+
+# Result: <div style="color: blue; font-size: 16px; background-color: #f0f0f0; padding: 20px; border-radius: 5px">Styled content</div>
+```
+
+### Method Chaining
+
+All builder methods return `self`, enabling fluent method chaining:
+
+```python
+from ydnatl import *
+
+# Chain multiple operations together
+container = (Div()
+    .add_attribute("id", "main-container")
+    .add_attribute("class", "wrapper")
+    .add_style("background", "#fff")
+    .add_styles({"padding": "20px", "margin": "0 auto"})
+    .append(H1("Welcome"))
+    .append(Paragraph("This is the main content."))
+    .append(Paragraph("Another paragraph here.")))
+
+print(container.render())
+```
+
+Chainable methods:
+- `append()` - Add children
+- `prepend()` - Add children at the beginning
+- `add_attribute()` - Add single attribute
+- `add_attributes()` - Add multiple attributes
+- `remove_attribute()` - Remove an attribute
+- `add_style()` - Add single CSS style
+- `add_styles()` - Add multiple CSS styles
+- `remove_style()` - Remove a CSS style
+- `clear()` - Remove all children
+- `remove_all()` - Remove children matching a condition
+
+### Context Manager Support
+
+Use elements as context managers for cleaner, more intuitive nesting:
+
+```python
+from ydnatl import *
+
+# Using context managers
+with Div(id="container", class_name="main") as container:
+    with Section(class_name="content") as section:
+        section.append(H1("Title"))
+        section.append(Paragraph("Content goes here"))
+
+    container.append(section)
+    container.append(Footer(Paragraph("Footer text")))
+
+print(container.render())
+```
+
+### Fragment Support
+
+Use `Fragment` to group elements without adding a wrapper tag:
+
+```python
+from ydnatl import *
+
+# Without Fragment - adds extra div wrapper
+content = Div(
+    H1("Title"),
+    Paragraph("Content")
+)
+# Output: <div><h1>Title</h1><p>Content</p></div>
+
+# With Fragment - no wrapper tag
+content = Fragment(
+    H1("Title"),
+    Paragraph("Content")
+)
+# Output: <h1>Title</h1><p>Content</p>
+
+# Perfect for conditional rendering
+def render_items(items, show_header=True):
+    fragment = Fragment()
+
+    if show_header:
+        fragment.append(H2("Items List"))
+
+    for item in items:
+        fragment.append(Paragraph(item))
+
+    return fragment
+
+# Use in parent element
+page = Div(
+    render_items(["Item 1", "Item 2", "Item 3"], show_header=True)
+)
+# Output: <div><h2>Items List</h2><p>Item 1</p><p>Item 2</p><p>Item 3</p></div>
+```
+
+**Fragment use cases:**
+- Conditional rendering without wrapper divs
+- Returning multiple elements from functions
+- List composition and iteration
+- Cleaner component architecture
 
 ### JSON Serialization
 
@@ -254,29 +432,41 @@ pytest
 
 ## Element Methods:
 
-- `instance.prepend()`
-- `instance.append()`
-- `instance.filter()`
-- `instance.remove_all()`
-- `instance.clear()`
-- `instance.pop()`
-- `instance.first()`
-- `instance.last()`
-- `instance.add_attribute()`
-- `instance.add_attributes()`
-- `instance.remove_attribute()`
-- `instance.get_attribute()`
-- `instance.has_attribute()`
-- `instance.generate_id()`
-- `instance.clone()`
-- `instance.find_by_attribute()`
-- `instance.get_attributes()`
-- `instance.count_children()`
-- `instance.render()`
-- `instance.to_dict()`
-- `instance.to_json(indent=None)` - Serialize element to JSON string
-- `HTMLElement.from_dict(data)` - Reconstruct element from dictionary
-- `HTMLElement.from_json(json_str)` - Reconstruct element from JSON string
+**Element Manipulation:**
+- `instance.prepend()` - Prepend children (returns self for chaining)
+- `instance.append()` - Append children (returns self for chaining)
+- `instance.filter()` - Filter children by condition
+- `instance.remove_all()` - Remove children matching condition (returns self for chaining)
+- `instance.clear()` - Remove all children (returns self for chaining)
+- `instance.pop()` - Remove and return child at index
+- `instance.first()` - Get first child
+- `instance.last()` - Get last child
+- `instance.replace_child()` - Replace child at index
+- `instance.clone()` - Deep copy of element
+- `instance.find_by_attribute()` - Find child by attribute value
+- `instance.count_children()` - Count direct children
+
+**Attribute Management:**
+- `instance.add_attribute()` - Add single attribute (returns self for chaining)
+- `instance.add_attributes()` - Add multiple attributes (returns self for chaining)
+- `instance.remove_attribute()` - Remove attribute (returns self for chaining)
+- `instance.get_attribute()` - Get attribute value
+- `instance.has_attribute()` - Check if attribute exists
+- `instance.get_attributes()` - Get all or specific attributes
+- `instance.generate_id()` - Generate unique ID if not present
+
+**CSS Style Management:**
+- `instance.add_style()` - Add single CSS style (returns self for chaining)
+- `instance.add_styles()` - Add multiple CSS styles (returns self for chaining)
+- `instance.get_style()` - Get specific style value
+- `instance.remove_style()` - Remove CSS style (returns self for chaining)
+
+**Rendering:**
+- `instance.render(pretty=False)` - Render to HTML string (pretty=True for indented output)
+- `instance.to_dict()` - Convert to dictionary
+- `instance.to_json(indent=None)` - Serialize to JSON string
+- `HTMLElement.from_dict(data)` - Reconstruct from dictionary (class method)
+- `HTMLElement.from_json(json_str)` - Reconstruct from JSON string (class method)
 
 ## Events
 
