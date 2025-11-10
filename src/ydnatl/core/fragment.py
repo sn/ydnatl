@@ -16,7 +16,9 @@ class Fragment(HTMLElement):
         # Instead of: <fragment><h1>Title</h1><p>Content</p></fragment>
     """
 
-    def __init__(self, *children: Union["HTMLElement", str, List[Any]], **attributes: str):
+    def __init__(
+        self, *children: Union["HTMLElement", str, List[Any]], **attributes: str
+    ):
         # Initialize with a dummy tag name since we won't render it
         super().__init__(*children, tag="fragment", **attributes)
 
@@ -35,18 +37,17 @@ class Fragment(HTMLElement):
         # Render only children, not the fragment tag itself
         if pretty:
             result = "".join(
-                child.render(pretty=True, _indent=_indent)
-                for child in self._children
+                child.render(pretty=True, _indent=_indent) for child in self._children
             )
         else:
             result = "".join(
-                child.render(pretty=False, _indent=_indent)
-                for child in self._children
+                child.render(pretty=False, _indent=_indent) for child in self._children
             )
 
         # Include text content if any
         if self._text:
             import html
+
             result = html.escape(self._text) + result
 
         self.on_after_render()

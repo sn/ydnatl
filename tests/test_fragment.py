@@ -10,10 +10,7 @@ class TestFragment(unittest.TestCase):
 
     def test_fragment_basic(self):
         """Test basic Fragment rendering without wrapper tag."""
-        fragment = Fragment(
-            H1("Title"),
-            Paragraph("Content")
-        )
+        fragment = Fragment(H1("Title"), Paragraph("Content"))
 
         rendered = str(fragment)
         self.assertEqual(rendered, "<h1>Title</h1><p>Content</p>")
@@ -28,9 +25,7 @@ class TestFragment(unittest.TestCase):
 
     def test_fragment_single_child(self):
         """Test Fragment with single child."""
-        fragment = Fragment(
-            Paragraph("Single child")
-        )
+        fragment = Fragment(Paragraph("Single child"))
 
         rendered = str(fragment)
         self.assertEqual(rendered, "<p>Single child</p>")
@@ -41,7 +36,7 @@ class TestFragment(unittest.TestCase):
             H1("Header"),
             Paragraph("Paragraph 1"),
             Paragraph("Paragraph 2"),
-            Span("Inline text")
+            Span("Inline text"),
         )
 
         rendered = str(fragment)
@@ -51,13 +46,7 @@ class TestFragment(unittest.TestCase):
     def test_fragment_nested_elements(self):
         """Test Fragment with nested HTML elements."""
         fragment = Fragment(
-            Div(
-                H1("Title"),
-                Paragraph("Content")
-            ),
-            Section(
-                Paragraph("More content")
-            )
+            Div(H1("Title"), Paragraph("Content")), Section(Paragraph("More content"))
         )
 
         rendered = str(fragment)
@@ -75,11 +64,7 @@ class TestFragment(unittest.TestCase):
 
     def test_fragment_mixed_text_and_elements(self):
         """Test Fragment with both text and elements."""
-        fragment = Fragment(
-            "Text before",
-            Paragraph("Middle"),
-            "Text after"
-        )
+        fragment = Fragment("Text before", Paragraph("Middle"), "Text after")
 
         # Note: text is handled differently, need to test actual output
         rendered = str(fragment)
@@ -88,11 +73,7 @@ class TestFragment(unittest.TestCase):
     def test_fragment_pretty_printing(self):
         """Test Fragment with pretty printing enabled."""
         fragment = Fragment(
-            Div(
-                H1("Title"),
-                Paragraph("Content")
-            ),
-            Paragraph("Outside")
+            Div(H1("Title"), Paragraph("Content")), Paragraph("Outside")
         )
 
         pretty = fragment.render(pretty=True)
@@ -111,9 +92,7 @@ class TestFragment(unittest.TestCase):
 
     def test_fragment_prepend_children(self):
         """Test prepending children to Fragment."""
-        fragment = Fragment(
-            Paragraph("Second")
-        )
+        fragment = Fragment(Paragraph("Second"))
         fragment.prepend(H1("First"))
 
         rendered = str(fragment)
@@ -121,10 +100,7 @@ class TestFragment(unittest.TestCase):
 
     def test_fragment_clear(self):
         """Test clearing Fragment children."""
-        fragment = Fragment(
-            H1("Title"),
-            Paragraph("Content")
-        )
+        fragment = Fragment(H1("Title"), Paragraph("Content"))
 
         fragment.clear()
         rendered = str(fragment)
@@ -132,20 +108,13 @@ class TestFragment(unittest.TestCase):
 
     def test_fragment_count_children(self):
         """Test counting Fragment children."""
-        fragment = Fragment(
-            H1("Title"),
-            Paragraph("Content 1"),
-            Paragraph("Content 2")
-        )
+        fragment = Fragment(H1("Title"), Paragraph("Content 1"), Paragraph("Content 2"))
 
         self.assertEqual(fragment.count_children(), 3)
 
     def test_fragment_nested_in_div(self):
         """Test using Fragment inside another element."""
-        fragment = Fragment(
-            H1("Title"),
-            Paragraph("Content")
-        )
+        fragment = Fragment(H1("Title"), Paragraph("Content"))
 
         div = Div()
         div.append(fragment)
@@ -187,11 +156,7 @@ class TestFragment(unittest.TestCase):
 
     def test_fragment_with_attributes(self):
         """Test that Fragment ignores attributes (doesn't render them)."""
-        fragment = Fragment(
-            H1("Title"),
-            id="ignored",
-            class_name="also-ignored"
-        )
+        fragment = Fragment(H1("Title"), id="ignored", class_name="also-ignored")
 
         rendered = str(fragment)
         self.assertNotIn("id", rendered)
@@ -200,10 +165,12 @@ class TestFragment(unittest.TestCase):
 
     def test_fragment_method_chaining(self):
         """Test method chaining with Fragment."""
-        fragment = (Fragment()
-                    .append(H1("Title"))
-                    .append(Paragraph("Content 1"))
-                    .append(Paragraph("Content 2")))
+        fragment = (
+            Fragment()
+            .append(H1("Title"))
+            .append(Paragraph("Content 1"))
+            .append(Paragraph("Content 2"))
+        )
 
         self.assertEqual(fragment.count_children(), 3)
         rendered = str(fragment)
@@ -226,10 +193,7 @@ class TestFragment(unittest.TestCase):
 
     def test_fragment_clone(self):
         """Test cloning a Fragment."""
-        original = Fragment(
-            H1("Title"),
-            Paragraph("Content")
-        )
+        original = Fragment(H1("Title"), Paragraph("Content"))
 
         cloned = original.clone()
 
@@ -240,10 +204,7 @@ class TestFragment(unittest.TestCase):
     def test_fragment_filter(self):
         """Test filtering Fragment children."""
         fragment = Fragment(
-            H1("Title"),
-            Paragraph("Para 1"),
-            Span("Span"),
-            Paragraph("Para 2")
+            H1("Title"), Paragraph("Para 1"), Span("Span"), Paragraph("Para 2")
         )
 
         paragraphs = list(fragment.filter(lambda x: x.tag == "p"))
@@ -252,9 +213,7 @@ class TestFragment(unittest.TestCase):
     def test_fragment_find_by_attribute(self):
         """Test finding elements by attribute in Fragment."""
         fragment = Fragment(
-            H1("Title", id="header"),
-            Paragraph("Content", id="main"),
-            Span("Text")
+            H1("Title", id="header"), Paragraph("Content", id="main"), Span("Text")
         )
 
         found = fragment.find_by_attribute("id", "main")
@@ -263,12 +222,7 @@ class TestFragment(unittest.TestCase):
 
     def test_fragment_compact_vs_pretty(self):
         """Test compact vs pretty rendering of Fragment."""
-        fragment = Fragment(
-            Div(
-                H1("Title"),
-                Paragraph("Content")
-            )
-        )
+        fragment = Fragment(Div(H1("Title"), Paragraph("Content")))
 
         # Compact
         compact = fragment.render(pretty=False)

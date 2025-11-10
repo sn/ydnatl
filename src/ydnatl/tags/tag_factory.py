@@ -21,6 +21,7 @@ def simple_tag_class(tag, self_closing=False, extra_init=None):
                     **({"self_closing": True} if self_closing else {}),
                 },
             )
+
     # @NOTE __qualname__ for serialization
     class_name = tag.capitalize() if tag.islower() else tag
     _Tag.__name__ = class_name
