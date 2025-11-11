@@ -5,18 +5,18 @@ import os
 import uuid
 from typing import Callable, Any, Iterator, Union, List, TypeVar
 
-T = TypeVar('T', bound='HTMLElement')
+T = TypeVar("T", bound="HTMLElement")
 
 
 class HTMLElement:
     __slots__ = ["_tag", "_children", "_text", "_attributes", "_self_closing"]
 
     def __init__(
-            self,
-            *children: Union["HTMLElement", str, List[Any]],
-            tag: str,
-            self_closing: bool = False,
-            **attributes: str,
+        self,
+        *children: Union["HTMLElement", str, List[Any]],
+        tag: str,
+        self_closing: bool = False,
+        **attributes: str,
     ):
         PRESERVE_UNDERSCORE = {"class_name"}
 
@@ -100,7 +100,7 @@ class HTMLElement:
         return self
 
     def filter(
-            self, condition: Callable[[Any], bool], recursive: bool = False
+        self, condition: Callable[[Any], bool], recursive: bool = False
     ) -> Iterator["HTMLElement"]:
         """Yields children (and optionally descendants) that meet the condition."""
         for child in self._children:
@@ -288,7 +288,7 @@ class HTMLElement:
         self._children[old_index] = new_child
 
     def find_by_attribute(
-            self, attr_name: str, attr_value: Any
+        self, attr_name: str, attr_value: Any
     ) -> Union["HTMLElement", None]:
         """Finds a child by an attribute."""
 
@@ -470,7 +470,7 @@ class HTMLElement:
         element = cls(
             tag=data["tag"],
             self_closing=data.get("self_closing", False),
-            **data.get("attributes", {})
+            **data.get("attributes", {}),
         )
 
         if "text" in data and data["text"]:

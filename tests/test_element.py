@@ -246,6 +246,7 @@ class TestHTMLElement(unittest.TestCase):
     def test_to_json_simple_element(self):
         """Test serialization of a simple element to JSON."""
         import json
+
         element = HTMLElement("Hello", tag="div", id="test", class_name="container")
         json_str = element.to_json()
         self.assertIsInstance(json_str, str)
@@ -270,6 +271,7 @@ class TestHTMLElement(unittest.TestCase):
 
         json_str = parent.to_json()
         import json
+
         data = json.loads(json_str)
 
         self.assertEqual(len(data["children"]), 2)
@@ -283,7 +285,7 @@ class TestHTMLElement(unittest.TestCase):
             "self_closing": False,
             "attributes": {"id": "test", "class": "container"},
             "text": "Hello",
-            "children": []
+            "children": [],
         }
         element = HTMLElement.from_dict(data)
 
@@ -300,7 +302,7 @@ class TestHTMLElement(unittest.TestCase):
             "self_closing": True,
             "attributes": {},
             "text": "",
-            "children": []
+            "children": [],
         }
         element = HTMLElement.from_dict(data)
 
@@ -321,16 +323,16 @@ class TestHTMLElement(unittest.TestCase):
                     "self_closing": False,
                     "attributes": {},
                     "text": "Child 1",
-                    "children": []
+                    "children": [],
                 },
                 {
                     "tag": "span",
                     "self_closing": False,
                     "attributes": {},
                     "text": "Child 2",
-                    "children": []
-                }
-            ]
+                    "children": [],
+                },
+            ],
         }
         element = HTMLElement.from_dict(data)
 
@@ -374,12 +376,9 @@ class TestHTMLElement(unittest.TestCase):
         section = HTMLElement(tag="section")
         section.append(
             HTMLElement("Paragraph 1", tag="p"),
-            HTMLElement("Paragraph 2", tag="p", class_name="highlight")
+            HTMLElement("Paragraph 2", tag="p", class_name="highlight"),
         )
-        original.append(
-            HTMLElement("Header", tag="h1"),
-            section
-        )
+        original.append(HTMLElement("Header", tag="h1"), section)
 
         json_str = original.to_json()
 
@@ -400,7 +399,7 @@ class TestHTMLElement(unittest.TestCase):
             type="text",
             name="username",
             placeholder="Enter username",
-            data_validation="required"
+            data_validation="required",
         )
 
         json_str = original.to_json()
@@ -408,8 +407,13 @@ class TestHTMLElement(unittest.TestCase):
 
         self.assertEqual(original.get_attribute("type"), restored.get_attribute("type"))
         self.assertEqual(original.get_attribute("name"), restored.get_attribute("name"))
-        self.assertEqual(original.get_attribute("placeholder"), restored.get_attribute("placeholder"))
-        self.assertEqual(original.get_attribute("data-validation"), restored.get_attribute("data-validation"))
+        self.assertEqual(
+            original.get_attribute("placeholder"), restored.get_attribute("placeholder")
+        )
+        self.assertEqual(
+            original.get_attribute("data-validation"),
+            restored.get_attribute("data-validation"),
+        )
         self.assertEqual(str(original), str(restored))
 
     def test_serialization_deeply_nested(self):
@@ -426,22 +430,22 @@ class TestHTMLElement(unittest.TestCase):
         json_str = root.to_json()
         restored = HTMLElement.from_json(json_str)
 
-        self.assertEqual(restored.children[0].children[0].children[0].text, "Deep content")
+        self.assertEqual(
+            restored.children[0].children[0].children[0].text, "Deep content"
+        )
         self.assertEqual(str(root), str(restored))
-
 
     def test_render_pretty_simple(self):
         """Test pretty printing with simple nested structure."""
         element = HTMLElement(tag="div", id="container")
-        element.append(
-            HTMLElement("Hello", tag="h1"),
-            HTMLElement("World", tag="p")
-        )
+        element.append(HTMLElement("Hello", tag="h1"), HTMLElement("World", tag="p"))
 
         # Test compact (default)
         compact = element.render(pretty=False)
         self.assertNotIn("\n", compact)
-        self.assertEqual(compact, '<div id="container"><h1>Hello</h1><p>World</p></div>')
+        self.assertEqual(
+            compact, '<div id="container"><h1>Hello</h1><p>World</p></div>'
+        )
 
         # Test pretty
         pretty = element.render(pretty=True)
@@ -482,11 +486,7 @@ class TestHTMLElement(unittest.TestCase):
     def test_add_styles_multiple(self):
         """Test adding multiple CSS styles at once."""
         element = HTMLElement(tag="div")
-        element.add_styles({
-            "color": "blue",
-            "font-size": "14px",
-            "margin": "10px"
-        })
+        element.add_styles({"color": "blue", "font-size": "14px", "margin": "10px"})
 
         style = element.get_attribute("style")
         self.assertIn("color: blue", style)
@@ -514,11 +514,7 @@ class TestHTMLElement(unittest.TestCase):
     def test_remove_style(self):
         """Test removing CSS styles."""
         element = HTMLElement(tag="div")
-        element.add_styles({
-            "color": "red",
-            "font-size": "14px",
-            "margin": "10px"
-        })
+        element.add_styles({"color": "red", "font-size": "14px", "margin": "10px"})
 
         element.remove_style("margin")
 
@@ -540,7 +536,9 @@ class TestHTMLElement(unittest.TestCase):
 
     def test_parse_styles(self):
         """Test the _parse_styles static method."""
-        styles_dict = HTMLElement._parse_styles("color: red; font-size: 14px; margin: 10px")
+        styles_dict = HTMLElement._parse_styles(
+            "color: red; font-size: 14px; margin: 10px"
+        )
 
         self.assertEqual(styles_dict["color"], "red")
         self.assertEqual(styles_dict["font-size"], "14px")
@@ -586,9 +584,11 @@ class TestHTMLElement(unittest.TestCase):
         self.assertIs(result, element)
 
         # Test actual chaining
-        element = (HTMLElement(tag="div")
-                   .append(HTMLElement(tag="h1"))
-                   .append(HTMLElement(tag="p")))
+        element = (
+            HTMLElement(tag="div")
+            .append(HTMLElement(tag="h1"))
+            .append(HTMLElement(tag="p"))
+        )
 
         self.assertEqual(element.count_children(), 2)
 
@@ -607,9 +607,11 @@ class TestHTMLElement(unittest.TestCase):
         self.assertIs(result, element)
 
         # Test actual chaining
-        element = (HTMLElement(tag="div")
-                   .add_attribute("id", "main")
-                   .add_attribute("class", "container"))
+        element = (
+            HTMLElement(tag="div")
+            .add_attribute("id", "main")
+            .add_attribute("class", "container")
+        )
 
         self.assertEqual(element.get_attribute("id"), "main")
         self.assertEqual(element.get_attribute("class"), "container")
@@ -636,9 +638,11 @@ class TestHTMLElement(unittest.TestCase):
         self.assertIs(result, element)
 
         # Test actual chaining
-        element = (HTMLElement(tag="div")
-                   .add_style("color", "blue")
-                   .add_style("font-size", "14px"))
+        element = (
+            HTMLElement(tag="div")
+            .add_style("color", "blue")
+            .add_style("font-size", "14px")
+        )
 
         self.assertEqual(element.get_style("color"), "blue")
         self.assertEqual(element.get_style("font-size"), "14px")
@@ -676,13 +680,15 @@ class TestHTMLElement(unittest.TestCase):
 
     def test_method_chaining_complex(self):
         """Test complex method chaining scenario."""
-        element = (HTMLElement(tag="div")
-                   .add_attribute("id", "container")
-                   .add_attribute("class", "wrapper")
-                   .add_style("background", "#f0f0f0")
-                   .add_styles({"padding": "20px", "margin": "10px"})
-                   .append(HTMLElement("Title", tag="h1"))
-                   .append(HTMLElement("Content", tag="p")))
+        element = (
+            HTMLElement(tag="div")
+            .add_attribute("id", "container")
+            .add_attribute("class", "wrapper")
+            .add_style("background", "#f0f0f0")
+            .add_styles({"padding": "20px", "margin": "10px"})
+            .append(HTMLElement("Title", tag="h1"))
+            .append(HTMLElement("Content", tag="p"))
+        )
 
         self.assertEqual(element.get_attribute("id"), "container")
         self.assertEqual(element.get_attribute("class"), "wrapper")

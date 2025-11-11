@@ -8,14 +8,17 @@ YDNATL (**Y**ou **D**on't **N**eed **A**nother **T**emplate **L**anguage) is a P
 - ✓ JSON serialization/deserialization for saving and loading UI structures
 - ✓ Pretty printing with indentation for readable HTML
 - ✓ CSS style helpers for easy inline styling
+- ✓ External stylesheet system with theming and BEM support
 - ✓ Method chaining for fluent interfaces
 - ✓ Context manager support for clean nesting
 - ✓ Fragment support for wrapper-free grouping
+- ✓ HTML parsing to convert raw HTML strings into YDNATL elements
 - ✓ Lightweight
 - ✓ Extremely fast
 - ✓ Fully customisable
 - ✓ Compose HTML efficiently
 - ✓ Lean & clean Python with no dependencies
+- ✓ LLM Compatible
 
 ## Requirements
 
@@ -187,6 +190,146 @@ div.remove_style("margin")
 # Result: <div style="color: blue; font-size: 16px; background-color: #f0f0f0; padding: 20px; border-radius: 5px">Styled content</div>
 ```
 
+### External Stylesheet and Theming
+
+YDNATL includes a powerful styling system for managing external stylesheets, themes, and reusable component styles. This is perfect for building larger applications where you want to separate styles from markup.
+
+#### Basic StyleSheet Usage
+
+```python
+from ydnatl import *
+from ydnatl.styles import CSSStyle, StyleSheet
+
+# Create a stylesheet
+stylesheet = StyleSheet()
+
+# Register reusable styles
+btn_primary = stylesheet.register("btn-primary", CSSStyle(
+    background_color="#007bff",
+    color="white",
+    padding="10px 20px",
+    border_radius="5px",
+    border="none",
+    cursor="pointer",
+    _hover=CSSStyle(background_color="#0056b3")  # Pseudo-selector
+))
+
+# Use in HTML
+page = HTML(
+    Head(
+        Title("My Page"),
+        Style(stylesheet.render())  # Insert generated CSS
+    ),
+    Body(
+        Button("Click Me", class_name=btn_primary)
+    )
+)
+```
+
+#### Theming Support
+
+YDNATL includes three preset themes (Modern, Classic, Minimal) with full CSS variable support:
+
+```python
+from ydnatl.styles import Theme, StyleSheet, CSSStyle
+
+# Use a preset theme
+theme = Theme.modern()  # or Theme.classic() or Theme.minimal()
+
+# Create stylesheet with theme
+stylesheet = StyleSheet(theme=theme)
+
+# Register styles using theme variables
+btn = stylesheet.register("btn", CSSStyle(
+    background_color="var(--color-primary)",
+    color="var(--color-white)",
+    padding="var(--spacing-md)",
+    border_radius="6px",
+    _hover=CSSStyle(background_color="var(--color-primary-dark)")
+))
+
+card = stylesheet.register("card", CSSStyle(
+    background_color="var(--color-white)",
+    padding="var(--spacing-lg)",
+    border_radius="8px",
+    box_shadow="0 1px 3px rgba(0, 0, 0, 0.1)"
+))
+```
+
+#### BEM Naming Convention
+
+Built-in support for BEM (Block Element Modifier) naming:
+
+```python
+from ydnatl.styles import StyleSheet, CSSStyle
+
+stylesheet = StyleSheet()
+
+# Register with BEM naming
+card = stylesheet.register_bem("card", style=CSSStyle(
+    background="white",
+    padding="20px"
+))
+
+card_header = stylesheet.register_bem("card", element="header", style=CSSStyle(
+    font_weight="bold"
+))
+
+card_featured = stylesheet.register_bem("card", modifier="featured", style=CSSStyle(
+    border="2px solid blue"
+))
+
+# Generates: .card, .card__header, .card--featured
+```
+
+#### Responsive Breakpoints
+
+Add responsive styles with breakpoint support:
+
+```python
+from ydnatl.styles import CSSStyle, StyleSheet
+
+stylesheet = StyleSheet()
+
+container = stylesheet.register("container", CSSStyle(
+    padding="10px",
+    _sm=CSSStyle(padding="15px", max_width="640px"),
+    _md=CSSStyle(padding="20px", max_width="768px"),
+    _lg=CSSStyle(padding="30px", max_width="1024px")
+))
+
+# Generates media queries automatically
+```
+
+#### Combining with Inline Styles
+
+You can mix stylesheet classes with inline style overrides:
+
+```python
+# Register base style
+btn = stylesheet.register("btn", CSSStyle(
+    padding="10px 20px",
+    border_radius="5px"
+))
+
+# Use base class + inline overrides
+Button("Custom", class_name=btn).add_styles({
+    "background-color": "#ff0000",
+    "font-size": "18px"
+})
+```
+
+**Key Features:**
+- Snake_case to kebab-case conversion (background_color → background-color)
+- Pseudo-selector support (:hover, :active, :focus, etc.)
+- Responsive breakpoints with media queries
+- Theme system with CSS variables
+- BEM naming convention support
+- JSON serialization for saving/loading styles
+- Combines seamlessly with existing inline styles
+
+See the [examples/stylesheet_example.py](examples/stylesheet_example.py) file for complete working examples.
+
 ### Method Chaining
 
 All builder methods return `self`, enabling fluent method chaining:
@@ -284,6 +427,76 @@ page = Div(
 - List composition and iteration
 - Cleaner component architecture
 
+### HTML Parsing
+
+YDNATL can parse raw HTML strings and convert them into YDNATL elements. This is useful for importing existing HTML, migrating from other tools, or working with HTML from external sources.
+
+```python
+from ydnatl import from_html, HTMLElement
+
+# Parse a single HTML element
+html_string = '<div class="container"><h1>Hello World</h1><p>Welcome to YDNATL</p></div>'
+element = from_html(html_string)
+
+# Now you can work with it like any YDNATL element
+element.add_style("padding", "20px")
+element.append(Paragraph("Added via YDNATL"))
+
+print(element.render())
+# Output: <div class="container" style="padding: 20px"><h1>Hello World</h1><p>Welcome to YDNATL</p><p>Added via YDNATL</p></div>
+
+# Alternative: use the class method
+element = HTMLElement.from_html(html_string)
+```
+
+**Parsing HTML fragments** (multiple root elements):
+
+```python
+from ydnatl import from_html
+
+# HTML with multiple root elements
+html_fragment = '''
+<h1>Welcome</h1>
+<p>First paragraph</p>
+<p>Second paragraph</p>
+'''
+
+# Parse as fragment (returns list of elements)
+elements = from_html(html_fragment, fragment=True)
+
+# Work with each element
+for el in elements:
+    print(el.tag, el.text)
+# Output:
+# h1 Welcome
+# p First paragraph
+# p Second paragraph
+
+# Combine with other YDNATL features
+container = Div()
+for el in elements:
+    container.append(el)
+
+print(container.render())
+# Output: <div><h1>Welcome</h1><p>First paragraph</p><p>Second paragraph</p></div>
+```
+
+**Features:**
+- Handles all HTML5 elements including self-closing tags (br, img, hr, etc.)
+- Preserves attributes, including data-* attributes
+- Converts `class` attribute to `class_name` automatically
+- Supports nested structures of any depth
+- Handles HTML entities and special characters
+- No external dependencies (uses Python's built-in html.parser)
+
+**Use cases:**
+- Import existing HTML into your website builder
+- Migrate from other HTML generation tools
+- Parse HTML templates from external sources
+- Convert HTML snippets to YDNATL for manipulation
+- Testing and validation workflows
+- Combining static HTML with dynamic YDNATL generation
+
 ### JSON Serialization
 
 YDNATL supports JSON serialization and deserialization, making it perfect for drag-and-drop website builders, saving UI states, or transmitting page structures over APIs.
@@ -324,7 +537,7 @@ The JSON format is simple and clean:
     "class": "container"
   },
   "text": "",
-  "children": [...]
+  "children": []
 }
 ```
 
@@ -348,6 +561,15 @@ The JSON format is simple and clean:
 - LLM's and AI tooling that generate interfaces dynamically
 - Creating frontends for headless platforms (CMS/CRM etc)
 - Applications requiring UI state serialization
+
+## LLM Guide
+
+For AI assistants and code generation tools, we provide a comprehensive technical reference in [LLM_GUIDE.md](LLM_GUIDE.md) with:
+- Complete API documentation with exact method signatures
+- Type hints and return values for all methods
+- 10 common patterns with code examples
+- Error handling and security best practices
+- Quick reference cheat sheet
 
 ## Examples
 
@@ -467,6 +689,8 @@ pytest
 - `instance.to_json(indent=None)` - Serialize to JSON string
 - `HTMLElement.from_dict(data)` - Reconstruct from dictionary (class method)
 - `HTMLElement.from_json(json_str)` - Reconstruct from JSON string (class method)
+- `HTMLElement.from_html(html_str, fragment=False)` - Parse HTML string to YDNATL element(s) (class method)
+- `from_html(html_str, fragment=False)` - Parse HTML string to YDNATL element(s) (function)
 
 ## Events
 
