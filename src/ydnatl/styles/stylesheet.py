@@ -1,8 +1,11 @@
 """StyleSheet class for managing CSS classes in YDNATL."""
 
-from typing import Dict, Optional, List
+from typing import Dict, Optional, List, TYPE_CHECKING
 
 from .style import CSSStyle
+
+if TYPE_CHECKING:
+    from .theme import Theme
 
 
 class StyleSheet:
