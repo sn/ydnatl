@@ -1,5 +1,6 @@
 from .core.element import HTMLElement
 from .core.fragment import Fragment
+from .core.parser import from_html
 from .tags.form import (
     Textarea,
     Select,
@@ -115,10 +116,20 @@ from .tags.text import (
     Br,
     Wbr,
 )
+from .styles import (
+    CSSStyle,
+    StyleSheet,
+    Theme,
+)
 
 __all__ = [
     "HTMLElement",
     "Fragment",
+    "from_html",
+    # styles
+    "CSSStyle",
+    "StyleSheet",
+    "Theme",
     # form
     "Textarea",
     "Select",

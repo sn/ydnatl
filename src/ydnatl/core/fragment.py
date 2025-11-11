@@ -1,4 +1,5 @@
 from typing import Union, List, Any
+
 from ydnatl.core.element import HTMLElement
 
 

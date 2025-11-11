@@ -1,9 +1,9 @@
 import unittest
 
-from ydnatl.core.fragment import Fragment
 from ydnatl.core.element import HTMLElement
-from ydnatl.tags.text import H1, Paragraph, Span
+from ydnatl.core.fragment import Fragment
 from ydnatl.tags.layout import Div, Section
+from ydnatl.tags.text import H1, Paragraph, Span
 
 
 class TestFragment(unittest.TestCase):
