@@ -59,7 +59,6 @@ class YDNATLHTMLParser(HTMLParser):
 
     def handle_endtag(self, tag: str):
         """Handle closing tags."""
-        # Flush any accumulated text before closing tag
         self._flush_text_buffer()
 
         if self.stack and self.stack[-1].tag == tag:
