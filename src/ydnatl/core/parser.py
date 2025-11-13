@@ -28,12 +28,15 @@ class YDNATLHTMLParser(HTMLParser):
 
     def __init__(self):
         super().__init__()
-        self.roots: List[HTMLElement] = []  # Support multiple roots for fragments
+        self.roots: List[HTMLElement] = []
         self.stack: List[HTMLElement] = []
         self.current: Optional[HTMLElement] = None
+        self.text_buffer: List[str] = []
 
     def handle_starttag(self, tag: str, attrs: List[tuple]):
         """Handle opening tags."""
+        self._flush_text_buffer()
+
         attributes = {}
         for key, value in attrs:
             if key == "class":
@@ -56,6 +59,9 @@ class YDNATLHTMLParser(HTMLParser):
 
     def handle_endtag(self, tag: str):
         """Handle closing tags."""
+        # Flush any accumulated text before closing tag
+        self._flush_text_buffer()
+
         if self.stack and self.stack[-1].tag == tag:
             self.stack.pop()
             self.current = self.stack[-1] if self.stack else None
@@ -64,10 +70,16 @@ class YDNATLHTMLParser(HTMLParser):
         """Handle text content between tags."""
         text = data.strip()
         if text and self.current is not None:
+            self.text_buffer.append(text)
+
+    def _flush_text_buffer(self):
+        """Flush accumulated text to the current element."""
+        if self.text_buffer and self.current is not None:
             if self.current.text:
-                self.current.text += text
+                self.current.text += "".join(self.text_buffer)
             else:
-                self.current.text = text
+                self.current.text = "".join(self.text_buffer)
+            self.text_buffer.clear()
 
     def parse_html(self, html_string: str) -> Optional[HTMLElement]:
         """Parse HTML string and return root element."""

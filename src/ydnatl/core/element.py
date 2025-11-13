@@ -9,7 +9,7 @@ T = TypeVar("T", bound="HTMLElement")
 
 
 class HTMLElement:
-    __slots__ = ["_tag", "_children", "_text", "_attributes", "_self_closing"]
+    __slots__ = ["_tag", "_children", "_text", "_attributes", "_self_closing", "_styles_cache"]
 
     def __init__(
         self,
@@ -33,12 +33,20 @@ class HTMLElement:
         self._text: str = ""
         self._attributes: dict = fixed_attributes
         self._self_closing: bool = self_closing
+        self._styles_cache: Union[dict, None] = None
 
         if os.environ.get("YDNATL_GENERATE_IDS"):
             self.generate_id()
 
+        # Batch text children to avoid repeated string concatenation
+        text_parts: List[str] = []
         for child in self._flatten(children):
-            self._add_child(child)
+            if isinstance(child, HTMLElement):
+                self._children.append(child)
+            elif isinstance(child, str):
+                text_parts.append(child)
+        if text_parts:
+            self._text = "".join(text_parts)
 
         self.on_load()
 
@@ -65,13 +73,6 @@ class HTMLElement:
             else:
                 yield item
 
-    def _add_child(self, child: Union["HTMLElement", str]) -> None:
-        """Adds a single child to the element."""
-        if isinstance(child, HTMLElement):
-            self._children.append(child)
-        elif isinstance(child, str):
-            self._text += child
-
     def prepend(self, *children: Union["HTMLElement", str, List[Any]]) -> "HTMLElement":
         """Prepends children to the current tag.
 
@@ -79,13 +80,16 @@ class HTMLElement:
             self for method chaining
         """
         new_children: List[HTMLElement] = []
+        text_parts: List[str] = []
         for child in self._flatten(children):
             if isinstance(child, HTMLElement):
                 new_children.append(child)
             elif isinstance(child, str):
-                self._text = child + self._text
+                text_parts.append(child)
             else:
                 raise ValueError(f"Invalid child type: {child}")
+        if text_parts:
+            self._text = "".join(text_parts) + self._text
         self._children = new_children + self._children
         return self
 
@@ -95,8 +99,14 @@ class HTMLElement:
         Returns:
             self for method chaining
         """
+        text_parts: List[str] = []
         for child in self._flatten(children):
-            self._add_child(child)
+            if isinstance(child, HTMLElement):
+                self._children.append(child)
+            elif isinstance(child, str):
+                text_parts.append(child)
+        if text_parts:
+            self._text += "".join(text_parts)
         return self
 
     def filter(
@@ -149,6 +159,8 @@ class HTMLElement:
             self for method chaining
         """
         self._attributes[key] = value
+        if key == "style":
+            self._styles_cache = None
         return self
 
     def add_attributes(self, attributes: list[tuple[str, str]]) -> "HTMLElement":
@@ -157,8 +169,14 @@ class HTMLElement:
         Returns:
             self for method chaining
         """
+        has_style = False
         for key, value in attributes:
             self._attributes[key] = value
+            if key == "style":
+                has_style = True
+
+        if has_style:
+            self._styles_cache = None
         return self
 
     def remove_attribute(self, key: str) -> "HTMLElement":
@@ -178,8 +196,28 @@ class HTMLElement:
         """Checks if an attribute exists in the current tag."""
         return key in self._attributes
 
+    def _get_styles_dict(self) -> dict:
+        """Gets the cached styles dictionary, parsing if necessary.
+
+        Returns:
+            Dictionary of CSS properties and values
+        """
+        if self._styles_cache is None:
+            current_style = self._attributes.get("style", "")
+            self._styles_cache = self._parse_styles(current_style)
+        return self._styles_cache
+
+    def _flush_styles_cache(self) -> None:
+        """Flushes the styles cache back to the style attribute."""
+        if self._styles_cache is not None:
+            if self._styles_cache:
+                self._attributes["style"] = self._format_styles(self._styles_cache)
+            else:
+                self._attributes.pop("style", None)
+
     def add_style(self, key: str, value: str) -> "HTMLElement":
-        """Adds a CSS style to the element's inline styles.
+        """
+        Adds a CSS style to the element's inline styles.
 
         Args:
             key: CSS property name (e.g., 'color', 'font-size')
@@ -188,14 +226,14 @@ class HTMLElement:
         Returns:
             self for method chaining
         """
-        current_style = self._attributes.get("style", "")
-        styles_dict = self._parse_styles(current_style)
+        styles_dict = self._get_styles_dict()
         styles_dict[key] = value
-        self._attributes["style"] = self._format_styles(styles_dict)
+        self._flush_styles_cache()
         return self
 
     def add_styles(self, styles: dict) -> "HTMLElement":
-        """Adds multiple CSS styles to the element's inline styles.
+        """
+        Adds multiple CSS styles to the element's inline styles.
 
         Args:
             styles: Dictionary of CSS properties and values
@@ -204,14 +242,14 @@ class HTMLElement:
         Returns:
             self for method chaining
         """
-        current_style = self._attributes.get("style", "")
-        styles_dict = self._parse_styles(current_style)
+        styles_dict = self._get_styles_dict()
         styles_dict.update(styles)
-        self._attributes["style"] = self._format_styles(styles_dict)
+        self._flush_styles_cache()
         return self
 
     def get_style(self, key: str) -> Union[str, None]:
-        """Gets a specific CSS style value from the element's inline styles.
+        """
+        Gets a specific CSS style value from the element's inline styles.
 
         Args:
             key: CSS property name
@@ -219,12 +257,12 @@ class HTMLElement:
         Returns:
             The CSS property value or None if not found
         """
-        current_style = self._attributes.get("style", "")
-        styles_dict = self._parse_styles(current_style)
+        styles_dict = self._get_styles_dict()
         return styles_dict.get(key)
 
     def remove_style(self, key: str) -> "HTMLElement":
-        """Removes a CSS style from the element's inline styles.
+        """
+        Removes a CSS style from the element's inline styles.
 
         Args:
             key: CSS property name to remove
@@ -232,18 +270,15 @@ class HTMLElement:
         Returns:
             self for method chaining
         """
-        current_style = self._attributes.get("style", "")
-        styles_dict = self._parse_styles(current_style)
+        styles_dict = self._get_styles_dict()
         styles_dict.pop(key, None)
-        if styles_dict:
-            self._attributes["style"] = self._format_styles(styles_dict)
-        else:
-            self._attributes.pop("style", None)
+        self._flush_styles_cache()
         return self
 
     @staticmethod
     def _parse_styles(style_str: str) -> dict:
-        """Parses a CSS style string into a dictionary.
+        """
+        Parses a CSS style string into a dictionary.
 
         Args:
             style_str: CSS style string (e.g., "color: red; font-size: 14px")
@@ -264,7 +299,8 @@ class HTMLElement:
 
     @staticmethod
     def _format_styles(styles_dict: dict) -> str:
-        """Formats a dictionary of styles into a CSS style string.
+        """
+        Formats a dictionary of styles into a CSS style string.
 
         Args:
             styles_dict: Dictionary of CSS properties and values
@@ -360,6 +396,7 @@ class HTMLElement:
     @attributes.setter
     def attributes(self, value: dict) -> None:
         self._attributes = value
+        self._styles_cache = None
 
     @property
     def self_closing(self) -> bool:
@@ -378,7 +415,8 @@ class HTMLElement:
         return f" {attr_str}" if attr_str else ""
 
     def render(self, pretty: bool = False, _indent: int = 0) -> str:
-        """Renders the HTML element and its children to a string.
+        """
+        Renders the HTML element and its children to a string.
 
         Args:
             pretty: If True, renders with indentation and newlines for readability
@@ -394,11 +432,11 @@ class HTMLElement:
         tag_start = f"{indent_str}<{self._tag}{attributes}"
 
         if self._self_closing:
-            result = f"{tag_start} />"
+            parts = [tag_start, " />"]
             if pretty:
-                result += "\n"
+                parts.append("\n")
+            result = "".join(parts)
         else:
-            # Render children with increased indentation
             if pretty and self._children:
                 children_html = "".join(
                     child.render(pretty=True, _indent=_indent + 1)
@@ -406,18 +444,17 @@ class HTMLElement:
                 )
                 escaped_text = html.escape(self._text)
 
-                # Add newlines and indentation for readability
                 if self._children or self._text:
-                    result = f"{tag_start}>"
+                    parts = [tag_start, ">"]
                     if escaped_text:
-                        result += escaped_text
+                        parts.append(escaped_text)
                     if self._children:
-                        result += "\n" + children_html + indent_str
-                    result += f"</{self._tag}>\n"
+                        parts.extend(["\n", children_html, indent_str])
+                    parts.append(f"</{self._tag}>\n")
+                    result = "".join(parts)
                 else:
                     result = f"{tag_start}></{self._tag}>\n"
             else:
-                # Non-pretty or inline rendering
                 children_html = "".join(
                     child.render(pretty=pretty, _indent=_indent + 1)
                     for child in self._children
@@ -441,7 +478,8 @@ class HTMLElement:
         }
 
     def to_json(self, indent: int = None) -> str:
-        """Serializes the element and its children to a JSON string.
+        """
+        Serializes the element and its children to a JSON string.
 
         Args:
             indent: Number of spaces for JSON indentation (None for compact output)
@@ -453,7 +491,8 @@ class HTMLElement:
 
     @classmethod
     def from_dict(cls, data: dict) -> "HTMLElement":
-        """Reconstructs an HTMLElement from a dictionary.
+        """
+        Reconstructs an HTMLElement from a dictionary.
 
         Args:
             data: Dictionary containing element data (from to_dict())
@@ -485,7 +524,8 @@ class HTMLElement:
 
     @classmethod
     def from_json(cls, json_str: str) -> "HTMLElement":
-        """Reconstructs an HTMLElement from a JSON string.
+        """
+        Reconstructs an HTMLElement from a JSON string.
 
         Args:
             json_str: JSON string representation (from to_json())

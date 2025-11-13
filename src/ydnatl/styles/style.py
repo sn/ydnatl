@@ -57,18 +57,15 @@ class CSSStyle:
             "_after",
         }
 
-        # Known breakpoints (can be extended)
         BREAKPOINTS = {"_xs", "_sm", "_md", "_lg", "_xl", "_2xl"}
 
         for key, value in kwargs.items():
             if isinstance(value, CSSStyle):
-                # It's a nested style for pseudo-selector or breakpoint
                 if key in PSEUDO_SELECTORS:
                     self._pseudo[key[1:].replace("_", "-")] = value
                 elif key in BREAKPOINTS:
                     self._breakpoints[key[1:]] = value
             else:
-                # Regular CSS property
                 self._styles[self._to_css_prop(key)] = str(value)
 
     def _to_css_prop(self, prop: str) -> str:
@@ -145,12 +142,10 @@ class CSSStyle:
         style = cls()
         style._styles = data.get("styles", {})
 
-        # Reconstruct pseudo-selectors
         if "pseudo" in data:
             for key, value in data["pseudo"].items():
                 style._pseudo[key] = cls.from_dict(value)
 
-        # Reconstruct breakpoints
         if "breakpoints" in data:
             for key, value in data["breakpoints"].items():
                 style._breakpoints[key] = cls.from_dict(value)
@@ -196,6 +191,5 @@ class CSSStyle:
 
     def __hash__(self) -> int:
         """Make CSSStyle hashable for use in dictionaries."""
-        # Convert dicts to sorted tuples for hashing
         styles_tuple = tuple(sorted(self._styles.items()))
         return hash(styles_tuple)
